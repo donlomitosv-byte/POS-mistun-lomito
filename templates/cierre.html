@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cierre de Caja - POS</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-base: #f7f6f2;
+            --bg-card: #ffffff;
+            --border-color: #e8e6e0;
+            --text-main: #2b2e38;
+            --text-muted: #7c7f8a;
+            
+            --dl-primary: #e65c00;
+            --mi-primary: #557a2b;
+            
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+            --transition: all 0.25s ease;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        .header-panel {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 20px 24px;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            padding: 24px;
+            transition: var(--transition);
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-top: 8px;
+        }
+        .stat-value.total { color: #1e2229; }
+        .stat-value.dl { color: var(--dl-primary); }
+        .stat-value.mi { color: var(--mi-primary); }
+
+        .table-custom {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .table-custom thead {
+            background-color: #1e2229;
+            color: white;
+        }
+        
+        .table-custom th {
+            font-weight: 600;
+            padding: 14px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .table-custom td {
+            padding: 14px;
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+
+        .item-pill {
+            font-size: 0.78rem;
+            background: #fafaf9;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-right: 6px;
+            margin-top: 4px;
+            border: 1px solid var(--border-color);
+            display: inline-block;
+            font-weight: 600;
+        }
+        
+        .badge-dl { background-color: var(--dl-primary); color: white; }
+        .badge-mi { background-color: var(--mi-primary); color: white; }
+
+        .list-group-custom .list-group-item {
+            padding: 16px;
+            border-color: var(--border-color);
+            background: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="pb-5">
+
+<div class="header-panel">
+    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+            <h2 class="fw-bold mb-0"><i class="fa-solid fa-vault me-2 text-secondary"></i>Cierre de Caja</h2>
+            <p class="text-muted mb-0 small">Reporte de facturación y resumen de ventas: <strong>{{ hoy }}</strong></p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="btn-group">
+                <a href="/cierre_caja?periodo=dia" class="btn btn-{{ 'primary' if periodo == 'dia' else 'outline-secondary' }} fw-bold">Día</a>
+                <a href="/cierre_caja?periodo=semana" class="btn btn-{{ 'primary' if periodo == 'semana' else 'outline-secondary' }} fw-bold">Semana</a>
+                <a href="/cierre_caja?periodo=mes" class="btn btn-{{ 'primary' if periodo == 'mes' else 'outline-secondary' }} fw-bold">Mes</a>
+                <a href="/cierre_caja?periodo=ano" class="btn btn-{{ 'primary' if periodo == 'ano' else 'outline-secondary' }} fw-bold">Año</a>
+            </div>
+            <a href="/" class="btn btn-dark px-4 py-2 rounded-pill fw-bold ms-md-2">
+                <i class="fa-solid fa-chevron-left me-1"></i> Panel de Ventas
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- TARJETAS DE INGRESOS -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="text-muted text-uppercase small fw-bold"><i class="fa-solid fa-wallet me-1"></i>Ingresos Totales</div>
+                <div class="stat-value total font-monospace">${{ "%.2f"|format(total_general) }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="text-muted text-uppercase small fw-bold"><i class="fa-solid fa-pepper-hot me-1"></i>Ventas Don Lomito</div>
+                <div class="stat-value dl font-monospace">${{ "%.2f"|format(total_dl) }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="text-muted text-uppercase small fw-bold"><i class="fa-solid fa-mug-hot me-1"></i>Ventas Mistun</div>
+                <div class="stat-value mi font-monospace">${{ "%.2f"|format(total_mi) }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPARACIÓN GRÁFICA -->
+    {% if total_general > 0 %}
+        {% set percent_dl = (total_dl / total_general) * 100 %}
+        {% set percent_mi = (total_mi / total_general) * 100 %}
+        <div class="stat-card mb-5">
+            <h6 class="fw-bold mb-3"><i class="fa-solid fa-chart-bar me-2"></i>Distribución de Ingresos (Don Lomito vs Mistun)</h6>
+            <div class="progress" style="height: 24px; border-radius: 50px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                <div class="progress-bar bg-danger" role="progressbar" style="width: {{ percent_dl }}%; font-weight: 700;" aria-valuenow="{{ percent_dl }}" aria-valuemin="0" aria-valuemax="100">
+                    Don Lomito ({{ "%.1f"|format(percent_dl) }}%)
+                </div>
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ percent_mi }}%; font-weight: 700;" aria-valuenow="{{ percent_mi }}" aria-valuemin="0" aria-valuemax="100">
+                    Mistun ({{ "%.1f"|format(percent_mi) }}%)
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- TABLAS DE DETALLES -->
+    <div class="row g-4">
+        <!-- DETALLE DE TRANSACCIONES -->
+        <div class="col-lg-8">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-list-check me-2 text-secondary"></i>Detalle de Transacciones</h5>
+            <div class="table-responsive table-custom">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-3">ID</th>
+                            <th>Ticket / Mesa / Consumos</th>
+                            <th>Marca</th>
+                            <th>Pago</th>
+                            <th class="text-end pe-3">Monto Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in ordenes %}
+                        <tr>
+                            <td class="ps-3 font-monospace fw-bold">#{{ o.id }}</td>
+                            <td>
+                                <div class="fw-bold text-dark" style="font-size: 1.05rem;">
+                                    <i class="fa-solid fa-ticket text-warning me-1"></i>{{ o.ticket_id }}
+                                </div>
+                                <div class="mt-1">
+                                    {% for item in o.items_lista %}
+                                        <span class="item-pill">
+                                            <b>{{ item.cantidad }}x</b> {{ item.nombre }}
+                                            {% if item.mods and item.mods|length > 0 %}
+                                                <small class="text-muted">
+                                                    ({{ item.mods|map(attribute='nombre')|join(', ') if item.mods[0] is mapping else item.mods|join(', ') }})
+                                                </small>
+                                            {% endif %}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if o.negocio == 'unificado' %}
+                                    <span class="badge text-white text-uppercase px-3 py-2" style="background: linear-gradient(135deg, var(--dl-primary), var(--mi-primary));">
+                                        UNIFICADO
+                                    </span>
+                                {% else %}
+                                    <span class="badge {{ 'badge-dl' if o.negocio == 'don_lomito' else 'badge-mi' }} text-uppercase px-3 py-2">
+                                        {{ o.negocio.replace('_', ' ') }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold text-secondary">
+                                <i class="fa-solid {{ 'fa-money-bill-wave text-success' if o.metodo_pago == 'Efectivo' else 'fa-credit-card text-primary' if o.metodo_pago == 'Tarjeta' else 'fa-building-columns text-purple' }} me-1"></i>
+                                {{ o.metodo_pago }}
+                                {% if o.referencia %}
+                                    <div class="small text-muted font-monospace mt-1" style="font-size: 0.78rem;"><i class="fa-solid fa-receipt me-1"></i>Ref: {{ o.referencia }}</div>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-3 fw-bold font-monospace text-dark fs-5">${{ "%.2f"|format(o.total) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fa-solid fa-folder-open fa-2x mb-2 text-secondary"></i>
+                                <p class="mb-0">No se registran transacciones pagadas en este período.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- RESUMEN METODOS PAGO -->
+        <div class="col-lg-4">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-chart-pie me-2 text-secondary"></i>Resumen por Método</h5>
+            <div class="card stat-card p-0 overflow-hidden">
+                <div class="list-group list-group-flush list-group-custom">
+                    {% for metodo, monto in por_metodo.items() %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center p-3">
+                        <div>
+                            <i class="fa-solid {{ 'fa-money-bill-wave text-success' if metodo == 'Efectivo' else 'fa-credit-card text-primary' if metodo == 'Tarjeta' else 'fa-building-columns text-purple' }} fa-lg me-2"></i>
+                            <span>{{ metodo }}</span>
+                        </div>
+                        <span class="badge bg-dark fs-6 py-2 px-3 font-monospace">${{ "%.2f"|format(monto) }}</span>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <p class="mb-0 small">Sin desglose disponible</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

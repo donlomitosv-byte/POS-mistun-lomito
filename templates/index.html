@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Don Lomito & Mistun POS</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <style>
+        :root {
+            /* MODO OSCURO PREMIUM (HSL Tailored Colors) */
+            --bg-base: #0c0e17;       /* Gris carbón texturizado muy oscuro */
+            --bg-card: #151824;       /* Slate oscuro para contenedores y tarjetas */
+            --border-color: #232738;   /* Bordes definidos pero sutiles */
+            --text-main: #f3f4f6;      /* Texto principal blanco suave */
+            --text-muted: #e2e8f0;     /* Texto secundario gris claro con alto contraste */
+            --glass-bg: rgba(21, 24, 36, 0.85);
+            
+            /* Identidad Don Lomito (Terracota / Naranja / Tacos) */
+            --dl-primary: #f26c1b;
+            --dl-hover: #d35400;
+            --dl-light: rgba(242, 108, 27, 0.15);
+            --dl-border: rgba(242, 108, 27, 0.35);
+            
+            /* Identidad Mistun (Verde Oliva / Café / Cafetería) */
+            --mi-primary: #76a035;
+            --mi-hover: #5d7f2a;
+            --mi-light: rgba(118, 160, 53, 0.15);
+            --mi-border: rgba(118, 160, 53, 0.35);
+            
+            /* Globales */
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background-color: var(--bg-base);
+            font-family: 'Outfit', sans-serif;
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* Navbar / Header */
+        .pos-header {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-logo h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+        }
+        .brand-logo span.dl-color { color: var(--dl-primary); }
+        .brand-logo span.mi-color { color: var(--mi-primary); }
+
+        /* Tarjetas de Producto Modernas */
+        .producto-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 110px;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .producto-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .producto-card.dl-item:hover {
+            border-color: var(--dl-primary);
+            background-color: var(--dl-light);
+        }
+        
+        .producto-card.mi-item:hover {
+            border-color: var(--mi-primary);
+            background-color: var(--mi-light);
+        }
+
+        .producto-card .nombre-prod {
+            font-weight: 600;
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+            line-height: 1.25;
+            color: var(--text-main);
+        }
+        
+        .producto-card .precio-prod {
+            font-weight: 700;
+            font-size: 1.15rem;
+        }
+        
+        .producto-card.dl-item .precio-prod { color: var(--dl-primary); }
+        .producto-card.mi-item .precio-prod { color: var(--mi-primary); }
+
+        .btn-delete-menu {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: none;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 10;
+        }
+        
+        .producto-card:hover .btn-delete-menu {
+            opacity: 1;
+        }
+        .btn-delete-menu:hover {
+            background: #ef4444;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Buscador e Inputs */
+        .search-container {
+            position: relative;
+        }
+        .search-container i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+        #busqueda-producto {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            padding: 12px 20px 12px 46px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+        #busqueda-producto:focus {
+            outline: none;
+            border-color: var(--dl-primary);
+            box-shadow: 0 0 0 4px rgba(242, 108, 27, 0.25);
+        }
+
+        .form-control, .form-select {
+            background-color: #1a1d2e;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #1d2138;
+            color: var(--text-main);
+            border-color: var(--dl-primary);
+            box-shadow: 0 0 0 3px rgba(242, 108, 27, 0.2);
+        }
+
+        /* Secciones y Categorías */
+        .brand-section-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+            margin: 20px 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+        }
+        .brand-section-title.dl-title { color: var(--dl-primary); }
+        .brand-section-title.mi-title { color: var(--mi-primary); }
+        
+        .categoria-pill-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+        
+        .categoria-badge {
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.6; /* Por defecto con opacidad menor */
+        }
+        .categoria-badge:hover {
+            opacity: 0.85;
+            transform: scale(1.02);
+        }
+        .categoria-badge.active {
+            opacity: 1;
+            box-shadow: 0 0 0 2px white;
+            transform: scale(1.05);
+        }
+        
+        .btn-delete-cat {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 10px;
+            padding: 0;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .btn-delete-cat:hover {
+            color: white;
+            transform: scale(1.2);
+        }
+
+        /* Carrito / Pedido */
+        .cart-card {
+            border: none;
+            border-radius: var(--radius-lg);
+            background: var(--bg-card);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .cart-header {
+            background: #090b12;
+            color: white;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .service-type-btn {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+        .service-type-btn:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+        .service-type-btn:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+        
+        .service-type-btn.active {
+            background: white;
+            color: #0c0e17;
+            border-color: white;
+        }
+        
+        .cart-body {
+            padding: 20px;
+        }
+
+        .carrito-item {
+            background: #11131f;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            transition: var(--transition);
+        }
+        
+        .carrito-item.dl-cart-item { border-left: 4px solid var(--dl-primary); }
+        .carrito-item.mi-cart-item { border-left: 4px solid var(--mi-primary); }
+        
+        .cart-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            font-weight: 600;
+        }
+        
+        .cart-item-details {
+            font-size: 0.8rem;
+            color: #f1f5f9 !important;
+            line-height: 1.3;
+        }
+        
+        /* Contraste y legibilidad mejorados en el Carrito y Cuentas Activas */
+        .cart-card .text-muted,
+        .cart-card .text-secondary,
+        .cart-card .text-white-50,
+        .ticket-group .text-muted,
+        .ticket-group .text-secondary,
+        .ticket-group .text-white-50 {
+            color: #e2e8f0 !important;
+        }
+        .modifier-chip .text-muted {
+            color: #e2e8f0 !important;
+        }
+        
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
+        .btn-qty {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: #1a1d2e;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .btn-qty:hover {
+            background: var(--border-color);
+        }
+        
+        .item-qty-badge {
+            font-weight: 700;
+            min-width: 18px;
+            text-align: center;
+        }
+        
+        .btn-remove-item {
+            color: #f87171;
+            background: transparent;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            padding: 4px;
+        }
+        .btn-remove-item:hover {
+            color: #ef4444;
+            transform: scale(1.1);
+        }
+
+        /* Cuentas Activas */
+        .ticket-group {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+        }
+        .ticket-group-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+
+        .ticket-card {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            margin-bottom: 8px;
+            transition: var(--transition);
+            background: #11131f;
+        }
+        .ticket-card.dl-border { border-left: 5px solid var(--dl-primary); }
+        .ticket-card.mi-border { border-left: 5px solid var(--mi-primary); }
+        
+        .ticket-card:hover {
+            transform: scale(1.01);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Modales Dark */
+        .modal-content {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+            background-color: #0f111a;
+        }
+        .btn-close {
+            filter: invert(1);
+        }
+
+        /* Modal chips de modificadores */
+        .modifier-chip {
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 2px solid var(--border-color);
+            background: #11131f;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .modifier-chip:hover {
+            border-color: var(--text-muted);
+        }
+        
+        .modifier-chip.selected-dl {
+            border-color: var(--dl-primary);
+            background: var(--dl-light);
+            color: var(--dl-primary);
+        }
+        
+        .modifier-chip.selected-mi {
+            border-color: var(--mi-primary);
+            background: var(--mi-light);
+            color: var(--mi-primary);
+        }
+
+        /* Pago wizard */
+        .metodo-pago-btn {
+            flex: 1;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            border: 2px solid var(--border-color);
+            background: #11131f;
+            color: var(--text-main);
+            font-weight: 700;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .metodo-pago-btn.active {
+            border-color: var(--dl-primary);
+            background-color: var(--dl-light);
+            color: var(--text-main);
+        }
+        .metodo-pago-btn i {
+            font-size: 1.5rem;
+        }
+        
+        .quick-bill-btn {
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            background: #232738;
+            color: white;
+            border: 1px solid var(--border-color);
+            font-weight: 700;
+            transition: var(--transition);
+        }
+        .quick-bill-btn:hover {
+            background: #31374f;
+        }
+
+        /* Panel de guardado */
+        .add-product-panel {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            padding: 20px;
+        }
+
+        .scrollbar-slim {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .scrollbar-slim::-webkit-scrollbar { width: 6px; }
+        .scrollbar-slim::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-slim::-webkit-scrollbar-thumb { background: #232738; border-radius: 10px; }
+        .scrollbar-slim::-webkit-scrollbar-thumb:hover { background: #31374f; }
+    </style>
+</head>
+<body>
+
+<!-- HEADER DEL POS -->
+<header class="pos-header">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <div class="brand-logo">
+            <i class="fa-solid fa-cash-register fa-xl text-white"></i>
+            <h1>
+                <span class="dl-color">Don Lomito</span>
+                <span class="text-white">&</span>
+                <span class="mi-color">Mistun</span>
+                <small class="text-muted fs-6 fw-normal ms-2">POS v2.0</small>
+            </h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="/kds/don_lomito" target="_blank" class="btn btn-sm btn-outline-danger px-3 rounded-pill fw-bold">
+                <i class="fa-solid fa-utensils me-1"></i> KDS Don Lomito
+            </a>
+            <a href="/kds/mistun" target="_blank" class="btn btn-sm btn-outline-success px-3 rounded-pill fw-bold">
+                <i class="fa-solid fa-mug-hot me-1"></i> KDS Mistun
+            </a>
+            <a href="/cierre_caja" class="btn btn-sm btn-light px-3 rounded-pill fw-bold">
+                <i class="fa-solid fa-vault me-1"></i> Cierre de Caja
+            </a>
+        </div>
+    </div>
+</header>
+
+<div class="container-fluid px-4 py-1">
+    <div class="row">
+        <!-- SECCIÓN 1: MENÚ Y PRODUCTOS (col-md-5) -->
+        <div class="col-lg-5 col-md-12 mb-4">
+            <!-- BUSCADOR -->
+            <div class="search-container mb-4">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="busqueda-producto" class="form-control" placeholder="Buscar un antojo o bebida..." onkeyup="filtrarProductos()">
+            </div>
+
+            <!-- NAVEGACIÓN DUAL -->
+            <div class="row">
+                <!-- DON LOMITO (COMIDA) -->
+                <div class="col-12 col-xl-6 mb-4">
+                    <h4 class="brand-section-title dl-title">
+                        <i class="fa-solid fa-pepper-hot"></i> Don Lomito
+                    </h4>
+                    <div class="categoria-pill-container">
+                        {% for cat in cats_dl %}
+                            <div class="categoria-badge text-white" id="badge-dl-{{cat|replace(' ', '-')}}" onclick="filtrarPorCategoria('don_lomito', '{{cat}}', this)">
+                                {{cat}}
+                                <form action="/eliminar_categoria" method="POST" class="d-inline" onsubmit="event.stopPropagation(); return confirm('¿Borrar toda la categoría {{cat}}?');">
+                                    <input type="hidden" name="negocio" value="don_lomito">
+                                    <input type="hidden" name="categoria" value="{{cat}}">
+                                    <button type="submit" class="btn-delete-cat"><i class="fa-solid fa-circle-xmark"></i></button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Placeholder de selección -->
+                    <div id="no-products-dl" class="text-center py-4 text-white-50 small bg-dark rounded border border-secondary mb-3">
+                        <i class="fa-solid fa-hand-pointer me-1 text-warning"></i> Selecciona una categoría de Don Lomito
+                    </div>
+
+                    <div class="row g-2" id="grid-productos-dl">
+                        {% for p in productos if p.negocio == 'don_lomito' %}
+                            <div class="col-6 prod-item-card dl-prod-card" data-nombre="{{p.nombre}}" data-categoria="{{p.categoria}}" style="display: none;">
+                                <div class="producto-card dl-item" 
+                                     data-id="{{ p.id }}"
+                                     data-nombre="{{ p.nombre }}"
+                                     data-precio="{{ p.precio_base }}"
+                                     data-negocio="{{ p.negocio }}"
+                                     data-categoria="{{ p.categoria }}"
+                                     onclick="prepararItemFromCard(this)">
+                                    <div class="nombre-prod">{{p.nombre}}</div>
+                                    <div class="precio-prod">${{p.precio_base}}</div>
+                                    <!-- Botón Eliminar -->
+                                    <form action="/eliminar_producto/{{p.id}}" method="POST" onsubmit="event.stopPropagation(); return confirm('¿Borrar {{p.nombre}}?');">
+                                        <button type="submit" class="btn-delete-menu"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                </div>
+                                <script id="data-{{p.id}}" type="application/json">
+                                    [
+                                        {% for o in p.opciones %}
+                                            {"nombre": {{ o.nombre | tojson }}, "precio": {{ o.precio_extra | tojson }}}{% if not loop.last %},{% endif %}
+                                        {% endfor %}
+                                    ]
+                                </script>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- MISTUN (CAFÉ & REPOSTERÍA) -->
+                <div class="col-12 col-xl-6 mb-4 border-start border-2 border-secondary">
+                    <h4 class="brand-section-title mi-title">
+                        <i class="fa-solid fa-cookie"></i> Mistun Cafe
+                    </h4>
+                    <div class="categoria-pill-container">
+                        {% for cat in cats_mi %}
+                            <div class="categoria-badge text-white" id="badge-mi-{{cat|replace(' ', '-')}}" onclick="filtrarPorCategoria('mistun', '{{cat}}', this)">
+                                {{cat}}
+                                <form action="/eliminar_categoria" method="POST" class="d-inline" onsubmit="event.stopPropagation(); return confirm('¿Borrar toda la categoría {{cat}}?');">
+                                    <input type="hidden" name="negocio" value="mistun">
+                                    <input type="hidden" name="categoria" value="{{cat}}">
+                                    <button type="submit" class="btn-delete-cat"><i class="fa-solid fa-circle-xmark"></i></button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Placeholder de selección -->
+                    <div id="no-products-mi" class="text-center py-4 text-white-50 small bg-dark rounded border border-secondary mb-3">
+                        <i class="fa-solid fa-hand-pointer me-1 text-warning"></i> Selecciona una categoría de Mistun
+                    </div>
+
+                    <div class="row g-2" id="grid-productos-mi">
+                        {% for p in productos if p.negocio == 'mistun' %}
+                            <div class="col-6 prod-item-card mi-prod-card" data-nombre="{{p.nombre}}" data-categoria="{{p.categoria}}" style="display: none;">
+                                <div class="producto-card mi-item" 
+                                     data-id="{{ p.id }}"
+                                     data-nombre="{{ p.nombre }}"
+                                     data-precio="{{ p.precio_base }}"
+                                     data-negocio="{{ p.negocio }}"
+                                     data-categoria="{{ p.categoria }}"
+                                     onclick="prepararItemFromCard(this)">
+                                    <div class="nombre-prod">{{p.nombre}}</div>
+                                    <div class="precio-prod">${{p.precio_base}}</div>
+                                    <!-- Botón Eliminar -->
+                                    <form action="/eliminar_producto/{{p.id}}" method="POST" onsubmit="event.stopPropagation(); return confirm('¿Borrar {{p.nombre}}?');">
+                                        <button type="submit" class="btn-delete-menu"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                </div>
+                                <script id="data-{{p.id}}" type="application/json">
+                                    [
+                                        {% for o in p.opciones %}
+                                            {"nombre": {{ o.nombre | tojson }}, "precio": {{ o.precio_extra | tojson }}}{% if not loop.last %},{% endif %}
+                                        {% endfor %}
+                                    ]
+                                </script>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONFIGURADOR / ADMIN FORMULARIO RÁPIDO -->
+            <div class="add-product-panel mt-3">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-plus-circle text-primary me-2"></i>Añadir Nuevo Producto</h5>
+                <form action="/agregar_producto" method="POST" class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-white-50">Marca</label>
+                        <select name="negocio" class="form-select form-select-sm">
+                            <option value="don_lomito">Don Lomito</option>
+                            <option value="mistun">Mistun</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-white-50">Categoría</label>
+                        <input type="text" name="categoria" placeholder="Ej: Bebidas, Tacos" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label small fw-bold text-white-50">Nombre del Producto</label>
+                        <input type="text" name="nombre" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-white-50">Precio Base</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-dark border-secondary text-white">$</span>
+                            <input type="number" step="0.1" name="precio" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-bold text-white-50">Extras / Opciones (Formato: `Nombre:Precio`, separado por comas)</label>
+                        <input type="text" name="opciones" placeholder="Ej: Queso:10, Crema:5, Leche Almendra:12" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-12 mt-3">
+                        <button class="btn btn-primary btn-sm w-100 fw-bold py-2"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar en Menú</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: PREPARACIÓN Y CARRITO (col-md-4) -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="cart-card">
+                <!-- CABECERA DEL CARRITO -->
+                <div class="cart-header">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fs-5 fw-bold text-white"><i class="fa-solid fa-receipt me-2 text-warning"></i>Pedido <span id="editando-label" class="badge bg-danger">Nuevo</span></span>
+                        <button class="btn btn-sm btn-link text-white-50 p-0 text-decoration-none" onclick="limpiarCarrito()">
+                            <i class="fa-solid fa-trash-can text-danger"></i> Limpiar Todo
+                        </button>
+                    </div>
+                    
+                    <!-- CONTROL DE MESAS / UBICACIÓN -->
+                    <div class="row g-2 mb-2">
+                        <div class="col-12">
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="service-type-btn active" id="btn-servicio-mesa" onclick="seleccionarServicio('Comer aquí')">
+                                    <i class="fa-solid fa-table me-1"></i> Comer Aquí
+                                </button>
+                                <button type="button" class="service-type-btn" id="btn-servicio-llevar" onclick="seleccionarServicio('Para llevar')">
+                                    <i class="fa-solid fa-bag-shopping me-1"></i> Llevar
+                                </button>
+                                <button type="button" class="service-type-btn" id="btn-servicio-domicilio" onclick="seleccionarServicio('A domicilio')">
+                                    <i class="fa-solid fa-motorcycle me-1"></i> Domicilio
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-12" id="wrapper-input-ticket">
+                            <input type="text" id="nombre-mesa-ticket" class="form-control form-control-sm border-0 bg-dark text-white rounded" placeholder="Ingresar Número de Mesa #">
+                        </div>
+                        <!-- Campo para detalles adicionales de entrega si es Domicilio -->
+                        <div class="col-12" id="wrapper-input-delivery" style="display:none;">
+                            <input type="text" id="direccion-delivery" class="form-control form-control-sm border-0 bg-dark text-white rounded mb-1" placeholder="Dirección del Cliente">
+                            <input type="text" id="telefono-delivery" class="form-control form-control-sm border-0 bg-dark text-white rounded" placeholder="Teléfono del Cliente">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LISTA DE PRODUCTOS EN EL CARRITO -->
+                <div class="cart-body">
+                    <div id="lista-carrito" class="scrollbar-slim" style="min-height: 250px;">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-white-50 opacity-25"></i>
+                            <p class="mb-0 fw-medium">El pedido está vacío</p>
+                            <small>Selecciona un producto del menú para comenzar</small>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4 border-secondary opacity-25">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fs-5 text-muted fw-bold">TOTAL</span>
+                        <span class="fs-2 fw-extrabold text-white font-monospace">$<span id="total-carrito">0.00</span></span>
+                    </div>
+
+                    <button class="btn btn-lg w-100 btn-primary py-3 fw-bold rounded-3 shadow-sm" onclick="enviarPedido()">
+                        <i class="fa-solid fa-paper-plane me-2"></i> ENVIAR A COCINA (KDS)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: CUENTAS ACTIVAS (col-md-3) -->
+        <div class="col-lg-3 col-md-12">
+            <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between text-white">
+                <span><i class="fa-solid fa-clock-rotate-left text-secondary me-2"></i>Cuentas Activas</span>
+                <span class="badge bg-secondary rounded-pill">{{ ordenes|length }}</span>
+            </h5>
+            
+            <div class="scrollbar-slim" style="max-height: 70vh;">
+                {% for ticket_id, group_ordenes in ordenes | groupby('ticket_id') %}
+                    <div class="ticket-group mb-3">
+                        <div class="ticket-group-title d-flex justify-content-between align-items-center">
+                            <span><i class="fa-solid fa-folder-open me-2 text-warning"></i>{{ ticket_id }}</span>
+                            <span class="badge bg-secondary font-monospace">{{ group_ordenes[0].tipo_servicio }}</span>
+                        </div>
+                        
+                        {% set grand_total = namespace(value=0.0) %}
+                        {% for o in group_ordenes %}
+                            {% set grand_total.value = grand_total.value + o.total %}
+                            <div class="ticket-card {{ 'dl-border' if o.negocio == 'don_lomito' else 'mi-border' }} mb-2">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <span class="badge bg-dark small">#{{ o.id }}</span>
+                                        <span class="badge bg-{{ 'danger' if o.negocio == 'don_lomito' else 'success' }} px-2 ms-1 text-uppercase">
+                                            {{ o.negocio.replace('don_', '') }}
+                                        </span>
+                                    </div>
+                                    <span class="badge bg-warning text-dark text-uppercase small fw-bold">
+                                        {{ o.estado.replace('_Cocina', '').replace('_', ' ') }}
+                                    </span>
+                                </div>
+                                
+                                <script id="items-data-{{ o.id }}" type="application/json">{{ o.items_json | safe }}</script>
+                                
+                                <div class="small text-secondary fw-semibold mb-2" id="resumen-{{o.id}}"></div>
+                                <script>
+                                    (() => {
+                                        let items = JSON.parse(document.getElementById('items-data-{{ o.id }}').textContent);
+                                        let resText = items.map(i => {
+                                            let modsText = (i.mods && i.mods.length > 0) ? ` (${i.mods.map(m => typeof m === 'object' ? m.nombre : m).join(', ')})` : '';
+                                            let changeText = i.is_new ? ' [NUEVO]' : i.is_modified ? ' [MODIF]' : '';
+                                            return `${i.cantidad}x ${i.nombre}${modsText}${changeText}`;
+                                        }).join(", ");
+                                        document.getElementById('resumen-{{o.id}}').innerText = resText;
+                                    })();
+                                </script>
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary">
+                                    <h5 class="mb-0 fw-bold font-monospace text-white">${{ o.total }}</h5>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                        <!-- BOTÓN DE COBRO MESA UNIFICADO (PRINCIPAL) -->
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary">
+                            <span class="text-white-50 small fw-bold">TOTAL MESA/TICKET:</span>
+                            <h4 class="mb-0 fw-extrabold text-white font-monospace">${{ "%.2f"|format(grand_total.value) }}</h4>
+                        </div>
+                        <div class="d-flex gap-2 mt-2">
+                            <button class="btn btn-outline-light flex-fill fw-bold py-2"
+                                    data-ticket-id="{{ ticket_id }}"
+                                    data-tipo="{{ group_ordenes[0].tipo_servicio }}"
+                                    onclick="editarPedidoCompleto(this)">
+                                <i class="fa-solid fa-pen-to-square me-1"></i> EDITAR MESA
+                            </button>
+                            <button class="btn btn-success flex-fill fw-bold py-2 btn-cobrar-unificado shadow-sm"
+                                    data-ticket-id="{{ ticket_id }}"
+                                    data-total="{{ grand_total.value }}"
+                                    data-orders='[{% for o in group_ordenes %}{"id": {{ o.id }}, "negocio": "{{ o.negocio }}", "total": {{ o.total }}}{% if not loop.last %},{% endif %}{% endfor %}]'
+                                    onclick="abrirModalPagoTicket(this)">
+                                <i class="fa-solid fa-circle-dollar-to-slot me-1"></i> COBRAR MESA
+                            </button>
+                        </div>
+                        
+                        <!-- APARTADO SECUNDARIO / COBRO SEPARADO -->
+                        <div class="mt-2 text-end">
+                            {% set collapse_id = "split-" ~ ticket_id|replace(' ', '-')|replace(':', '-')|replace('|', '-')|replace('#', '-') %}
+                            <button class="btn btn-sm btn-link text-white-50 text-decoration-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#{{ collapse_id }}" aria-expanded="false" style="font-size: 0.78rem;">
+                                <i class="fa-solid fa-arrows-split-up-and-left me-1"></i> Cobrar por Marca / Separado
+                            </button>
+                        </div>
+                        
+                        <div class="collapse mt-2" id="{{ collapse_id }}">
+                            <div class="bg-dark p-2 rounded border border-secondary">
+                                <small class="text-white-50 d-block mb-2 font-semibold" style="font-size: 0.75rem;">Cobro Individual por Marca:</small>
+                                {% for o in group_ordenes %}
+                                    <div class="d-flex justify-content-between align-items-center mb-1 pb-1 border-bottom border-secondary last-no-border">
+                                        <span class="badge bg-{{ 'danger' if o.negocio == 'don_lomito' else 'success' }} text-uppercase" style="font-size: 0.7rem;">
+                                            {{ o.negocio.replace('don_', '') }} (${{ o.total }})
+                                        </span>
+                                        <button class="btn btn-sm btn-outline-success py-0 px-2 fw-bold" style="font-size: 0.75rem;"
+                                                data-id="{{ o.id }}"
+                                                data-total="{{ o.total }}"
+                                                data-ticket-id="{{ ticket_id }}"
+                                                onclick="abrirModalPagoFromButton(this)">
+                                            Cobrar
+                                        </button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 bg-card border border-secondary rounded-4 text-muted">
+                        <i class="fa-solid fa-circle-check fa-2x mb-2 text-success"></i>
+                        <p class="mb-0 small fw-medium">No hay cuentas pendientes por cobrar</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PERSONALIZAR / SELECCIÓN DE MODIFICADORES -->
+<div class="modal fade" id="modalModificadores" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-secondary rounded-4 shadow-lg">
+            <div id="prep-brand-header" style="height: 10px; border-radius: 4px 4px 0 0;"></div>
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <span class="text-uppercase text-muted small fw-bold" id="prep-categoria">CATEGORIA</span>
+                    <h4 class="modal-title fw-bold text-white" id="prep-nombre">Personalizar Producto</h4>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="fw-medium text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i>Selecciona modificadores o ingredientes extras:</p>
+                <div id="prep-opciones" class="row g-2">
+                    <!-- Opciones se insertarán aquí dinámicamente -->
+                </div>
+            </div>
+            <div class="modal-footer border-0 rounded-bottom-4 d-flex justify-content-between align-items-center p-3">
+                <div class="text-start">
+                    <span class="text-muted small fw-medium">Subtotal</span>
+                    <div class="fs-3 fw-bold text-white font-monospace">$<span id="prep-subtotal">0.00</span></div>
+                </div>
+                <button type="button" class="btn btn-primary px-4 py-2 rounded-pill fw-bold" onclick="confirmarItem()">
+                    <i class="fa-solid fa-cart-plus me-1"></i> Añadir a Pedido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE PAGO CON CALCULADORA DE CAMBIO -->
+<div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-secondary rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-header bg-dark text-white border-0 py-3">
+                <h5 class="modal-title fw-bold text-white">
+                    <i class="fa-solid fa-cash-register me-2 text-warning"></i>Cobrar Ticket <span class="text-warning" id="pago-ticket-id"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <span class="text-muted small fw-semibold text-uppercase">Total a Pagar</span>
+                    <h1 class="fw-extrabold text-white mb-0 font-monospace" style="font-size: 3rem;">$<span id="pago-total">0.00</span></h1>
+                    <span class="badge bg-dark border border-secondary px-3 py-1 mt-1 rounded-pill">Orden #<span id="pago-id"></span></span>
+                </div>
+                
+                <!-- METODOS DE PAGO -->
+                <div class="d-flex gap-2 mb-4">
+                    <button class="metodo-pago-btn active" id="btn-metodo-Efectivo" onclick="seleccionarMetodo('Efectivo')">
+                        <i class="fa-solid fa-money-bill-wave text-success"></i>
+                        <span>Efectivo</span>
+                    </button>
+                    <button class="metodo-pago-btn" id="btn-metodo-Tarjeta" onclick="seleccionarMetodo('Tarjeta')">
+                        <i class="fa-solid fa-credit-card text-primary"></i>
+                        <span>Tarjeta</span>
+                    </button>
+                    <button class="metodo-pago-btn" id="btn-metodo-Transferencia" onclick="seleccionarMetodo('Transferencia')">
+                        <i class="fa-solid fa-building-columns text-info"></i>
+                        <span>Transf.</span>
+                    </button>
+                </div>
+
+                <!-- COBRO POR MARCA / SEPARADO (DISCRETO) -->
+                <div id="split-payment-section" class="mb-3 bg-dark p-3 rounded-3 border border-secondary" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-white-50 small fw-bold"><i class="fa-solid fa-arrows-split-up-and-left me-1 text-warning"></i> Cobrar por Marca / Separado</span>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" id="toggle-split-payment" onchange="toggleSplitPaymentView()">
+                        </div>
+                    </div>
+                    
+                    <div id="split-brands-container" style="display: none;" class="mt-3 pt-3 border-top border-secondary">
+                        <p class="text-white-50 small mb-2">Selecciona la marca a cobrar:</p>
+                        <div class="d-flex gap-2">
+                            <button id="btn-split-dl" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-2" onclick="selectSplitBrand('don_lomito')">
+                                Don Lomito
+                            </button>
+                            <button id="btn-split-mi" class="btn btn-outline-success btn-sm flex-fill fw-bold py-2" onclick="selectSplitBrand('mistun')">
+                                Mistun
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- CALCULADORA DE CAMBIO EFECTIVO -->
+                <div id="calc-efectivo" class="bg-dark p-3 rounded-3 mb-3 border border-secondary">
+                    <label class="form-label small fw-bold text-secondary mb-2"><i class="fa-solid fa-calculator me-1"></i>Efectivo Recibido</label>
+                    <input type="number" id="monto-recibido" class="form-control form-control-lg text-end font-monospace fw-bold mb-3 bg-black border-secondary text-white" placeholder="0.00" oninput="calcularCambio()">
+                    
+                    <!-- Billetes Rápidos -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <button class="btn btn-sm w-100 quick-bill-btn" onclick="rellenarEfectivo(100)">$100.00</button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-sm w-100 quick-bill-btn" onclick="rellenarEfectivo(200)">$200.00</button>
+                        </div>
+                        <div class="col-4">
+                            <button class="btn btn-sm w-100 quick-bill-btn" onclick="rellenarEfectivo(500)">$500.00</button>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold text-secondary">Cambio a Entregar:</span>
+                        <h2 class="text-success mb-0 fw-extrabold font-monospace">$<span id="monto-cambio">0.00</span></h2>
+                    </div>
+                </div>
+
+                <!-- CAMPO DE REFERENCIA DINÁMICO (OBLIGATORIO) -->
+                <div id="wrapper-referencia-pago" class="bg-dark p-3 rounded-3 mb-3 border border-secondary" style="display: none;">
+                    <label class="form-label small fw-bold text-secondary mb-2" id="label-referencia-pago">
+                        <i class="fa-solid fa-receipt me-1"></i> Número de Referencia
+                    </label>
+                    <input type="text" id="referencia-pago-input" class="form-control text-white bg-black border-secondary font-monospace" placeholder="Ingresar referencia del voucher">
+                    <div class="form-text text-danger small mt-1" id="error-referencia-pago" style="display: none;">
+                        Este número de referencia es obligatorio para registrar el cobro.
+                    </div>
+                </div>
+                
+                <div id="confirmar-pago" class="alert alert-warning d-flex align-items-center gap-2 mb-0" style="display:none;">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Confirmar pago vía <b id="metodo-nombre">Efectivo</b></span>
+                </div>
+            </div>
+            <div class="modal-footer border-0 p-3">
+                <button class="btn btn-success btn-lg w-100 fw-bold py-3 text-white" id="btn-aceptar-pago" onclick="procesarPago()">
+                    <i class="fa-solid fa-check-circle me-1"></i> ACEPTAR PAGO Y CERRAR
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let modalModificadores = null;
+let modalPagoInstance = null;
+let currentOrdersState = {};
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Inicializar instancias de Bootstrap Modals de forma segura
+    modalModificadores = new bootstrap.Modal(document.getElementById('modalModificadores'));
+    modalPagoInstance = new bootstrap.Modal(document.getElementById('modalPago'));
+
+    // Generar HSL elegantes para categorías
+    const badges = document.querySelectorAll('.categoria-badge');
+    badges.forEach(badge => {
+        let str = badge.innerText.replace("X", "").trim();
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) { hash = str.charCodeAt(i) + ((hash << 5) - hash); }
+        let color = `hsl(${Math.abs(hash) % 360}, 60%, 38%)`; 
+        badge.style.backgroundColor = color;
+        badge.style.borderColor = color;
+    });
+
+    // Guardar el estado inicial de las órdenes activas en el POS para sincronización
+    document.querySelectorAll('[id^="items-data-"]').forEach(scriptTag => {
+        const id = scriptTag.id.replace('items-data-', '');
+        const card = scriptTag.closest('.ticket-card');
+        if (card) {
+            const badge = card.querySelector('.badge.bg-warning');
+            if (badge) {
+                currentOrdersState[id] = badge.innerText.trim();
+            }
+        }
+    });
+
+    // Iniciar Polling de sincronización POS cada 3 segundos
+    setInterval(checkOrdersSync, 3000);
+});
+
+// --- SINCRONIZACIÓN AUTOMÁTICA EN TIEMPO REAL CON COCO/KDS ---
+async function checkOrdersSync() {
+    try {
+        const r = await fetch(`/api/active_orders_status?_=${Date.now()}`);
+        if (!r.ok) return;
+        const serverState = await r.json();
+        
+        let outOfSync = false;
+        const localKeys = Object.keys(currentOrdersState);
+        const serverKeys = Object.keys(serverState);
+        
+        if (localKeys.length !== serverKeys.length) {
+            outOfSync = true;
+        } else {
+            for (let id of localKeys) {
+                if (!serverState[id]) {
+                    outOfSync = true;
+                    break;
+                }
+                // Normalizar estados para comparar
+                const localVal = currentOrdersState[id].replace(/_/g, ' ').toUpperCase();
+                const serverVal = serverState[id].replace('_Cocina', '').replace(/_/g, ' ').toUpperCase();
+                if (localVal !== serverVal) {
+                    outOfSync = true;
+                    break;
+                }
+            }
+        }
+        
+        if (outOfSync) {
+            console.log("Cambios en cocina detectados. Sincronizando POS...");
+            location.reload();
+        }
+    } catch(e) {
+        console.error("Error sincronizando estados de comanda:", e);
+    }
+}
+
+// --- FILTRADO DINÁMICO POR CATEGORÍA EN FRONTEND ---
+function filtrarPorCategoria(negocio, categoria, elementoBadge) {
+    // 1. Ocultar placeholder helper
+    const helperId = negocio === 'don_lomito' ? 'no-products-dl' : 'no-products-mi';
+    const helper = document.getElementById(helperId);
+    if (helper) helper.style.display = 'none';
+
+    // 2. Limpiar estilos activos de badges del mismo negocio
+    const badgesContainer = elementoBadge.parentNode;
+    badgesContainer.querySelectorAll('.categoria-badge').forEach(b => {
+        b.classList.remove('active');
+    });
+
+    // 3. Activar el badge clickeado
+    elementoBadge.classList.add('active');
+
+    // 4. Filtrar y mostrar únicamente los productos seleccionados
+    const cardClass = negocio === 'don_lomito' ? '.dl-prod-card' : '.mi-prod-card';
+    document.querySelectorAll(cardClass).forEach(card => {
+        if (card.dataset.categoria === categoria) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filtrarProductos() {
+    let input = document.getElementById('busqueda-producto').value.toLowerCase();
+    
+    // Si la búsqueda no está vacía, mostramos coincidencias globales ocultando placeholders
+    if (input.trim() !== "") {
+        const h_dl = document.getElementById('no-products-dl');
+        const h_mi = document.getElementById('no-products-mi');
+        if (h_dl) h_dl.style.display = 'none';
+        if (h_mi) h_mi.style.display = 'none';
+    }
+    
+    let prodCards = document.querySelectorAll('.prod-item-card');
+    prodCards.forEach(card => {
+        let nombre = card.dataset.nombre.toLowerCase();
+        let categoria = card.dataset.categoria.toLowerCase();
+        if (nombre.includes(input) || categoria.includes(input)) {
+            card.style.display = "block";
+        } else {
+            card.style.display = "none";
+        }
+    });
+}
+
+let carrito = [];
+let total = 0;
+let itemPrep = null;
+let editandoOrdenObjeto = null; 
+let tipoServicio = 'Comer aquí';
+
+// --- BINDING SEGURO DESDE ATRIBUTOS DE LAS TARJETAS ---
+function prepararItemFromCard(cardElement) {
+    const id = cardElement.dataset.id;
+    const nombre = cardElement.dataset.nombre;
+    const precio = parseFloat(cardElement.dataset.precio);
+    const negocio = cardElement.dataset.negocio;
+    const categoria = cardElement.dataset.categoria;
+    prepararItem(nombre, precio, id, negocio, categoria);
+}
+
+function editarOrdenFromButton(buttonElement) {
+    const id = buttonElement.dataset.id;
+    const ticket_id = buttonElement.dataset.ticketId;
+    const totalOrden = parseFloat(buttonElement.dataset.total);
+    const tipo = buttonElement.dataset.tipo;
+    const negocio = buttonElement.dataset.negocio;
+    const estado = buttonElement.dataset.estado;
+    editarOrden(id, ticket_id, totalOrden, tipo, negocio, estado);
+}
+
+function abrirModalPagoFromButton(buttonElement) {
+    const id = buttonElement.dataset.id;
+    const total = parseFloat(buttonElement.dataset.total);
+    const ticketId = buttonElement.dataset.ticketId;
+    abrirModalPago(id, total, ticketId);
+}
+
+// --- CONTROL DE SERVICIO / MESAS / DIRECCIÓN ---
+function seleccionarServicio(tipo) {
+    tipoServicio = tipo;
+    
+    // UI active buttons
+    document.querySelectorAll('.service-type-btn').forEach(btn => btn.classList.remove('active'));
+    if (tipo === 'Comer aquí') {
+        document.getElementById('btn-servicio-mesa').classList.add('active');
+        document.getElementById('wrapper-input-ticket').style.display = 'block';
+        document.getElementById('wrapper-input-delivery').style.display = 'none';
+        document.getElementById('nombre-mesa-ticket').placeholder = 'Ingresar Número de Mesa #';
+    } else if (tipo === 'Para llevar') {
+        document.getElementById('btn-servicio-llevar').classList.add('active');
+        document.getElementById('wrapper-input-ticket').style.display = 'block';
+        document.getElementById('wrapper-input-delivery').style.display = 'none';
+        document.getElementById('nombre-mesa-ticket').placeholder = 'Nombre del Cliente';
+    } else if (tipo === 'A domicilio') {
+        document.getElementById('btn-servicio-domicilio').classList.add('active');
+        document.getElementById('wrapper-input-ticket').style.display = 'block';
+        document.getElementById('wrapper-input-delivery').style.display = 'block';
+        document.getElementById('nombre-mesa-ticket').placeholder = 'Nombre del Cliente';
+    }
+}
+
+// --- MODIFICADORES MULTI-SELECCIÓN ---
+function prepararItem(nombre, precio, id, negocio, categoria) {
+    itemPrep = { 
+        nombre: nombre, 
+        precioBase: precio, 
+        totalItem: precio, 
+        mods: [], 
+        negocio: negocio, 
+        categoria: categoria 
+    };
+    
+    document.getElementById('prep-nombre').innerText = nombre;
+    document.getElementById('prep-categoria').innerText = categoria;
+    document.getElementById('prep-subtotal').innerText = precio.toFixed(2);
+    
+    // Header visual color
+    const headerLine = document.getElementById('prep-brand-header');
+    if (negocio === 'don_lomito') {
+        headerLine.style.backgroundColor = 'var(--dl-primary)';
+    } else {
+        headerLine.style.backgroundColor = 'var(--mi-primary)';
+    }
+    
+    const opciones = JSON.parse(document.getElementById('data-'+id).textContent);
+    let html = "";
+    
+    if (opciones && opciones.length > 0) {
+        opciones.forEach((o, index) => {
+            let labelPrecio = o.precio > 0 ? `(+$${o.precio.toFixed(2)})` : '(Gratis)';
+            html += `
+                <div class="col-6">
+                    <div class="modifier-chip" id="mod-${index}" onclick="toggleMod('${o.nombre}', ${o.precio}, ${index})">
+                        <span>${o.nombre}</span>
+                        <span class="text-muted small">${labelPrecio}</span>
+                    </div>
+                </div>`;
+        });
+    } else {
+        html = '<div class="col-12 text-center text-muted py-3">Este producto no cuenta con adicionales o modificaciones.</div>';
+    }
+    
+    document.getElementById('prep-opciones').innerHTML = html;
+    if (modalModificadores) {
+        modalModificadores.show();
+    }
+}
+
+function toggleMod(nombre, precio, index) {
+    const chip = document.getElementById(`mod-${index}`);
+    const existingIndex = itemPrep.mods.findIndex(m => m.nombre === nombre);
+    const activeClass = itemPrep.negocio === 'don_lomito' ? 'selected-dl' : 'selected-mi';
+    
+    if (existingIndex > -1) {
+        // Remover modificador
+        itemPrep.mods.splice(existingIndex, 1);
+        itemPrep.totalItem -= precio;
+        chip.classList.remove(activeClass);
+    } else {
+        // Añadir modificador
+        itemPrep.mods.push({ nombre: nombre, precio: precio });
+        itemPrep.totalItem += precio;
+        chip.classList.add(activeClass);
+    }
+    
+    document.getElementById('prep-subtotal').innerText = itemPrep.totalItem.toFixed(2);
+}
+
+function confirmarItem() {
+    let itemKey = itemPrep.nombre + JSON.stringify(itemPrep.mods.map(m=>m.nombre).sort());
+    let indexExistente = carrito.findIndex(i => {
+        let currentKey = i.nombre + JSON.stringify(i.mods.map(m=>m.nombre).sort());
+        return currentKey === itemKey;
+    });
+
+    if (indexExistente > -1) {
+        carrito[indexExistente].cantidad += 1;
+    } else {
+        itemPrep.cantidad = 1;
+        carrito.push({...itemPrep});
+    }
+    
+    actualizarCarritoUI();
+    if (modalModificadores) {
+        modalModificadores.hide();
+    }
+}
+
+// --- ACTUALIZACIÓN DE INTERFAZ DEL CARRITO ---
+function actualizarCarritoUI() {
+    const contenedor = document.getElementById('lista-carrito');
+    contenedor.innerHTML = "";
+    total = 0;
+    
+    if (carrito.length === 0) {
+        contenedor.innerHTML = `
+            <div class="text-center py-5 text-muted">
+                <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-white-50 opacity-25"></i>
+                <p class="mb-0 fw-medium">El pedido está vacío</p>
+                <small>Selecciona un producto del menú para comenzar</small>
+            </div>`;
+    } else {
+        carrito.forEach((item, index) => {
+            const itemTotal = item.totalItem * item.cantidad;
+            total += itemTotal;
+            
+            const div = document.createElement('div');
+            div.className = `carrito-item ${item.negocio === 'don_lomito' ? 'dl-cart-item' : 'mi-cart-item'}`;
+            
+            let labelMods = "";
+            if (item.mods && item.mods.length > 0) {
+                labelMods = item.mods.map(m => `${m.nombre} (+$${m.precio.toFixed(2)})`).join(", ");
+                labelMods = `<div class="cart-item-details mt-1"><i class="fa-solid fa-square-plus me-1 text-secondary"></i>${labelMods}</div>`;
+            }
+            
+            div.innerHTML = `
+                <div class="cart-item-header">
+                    <span class="text-white">${item.nombre}</span>
+                    <span class="font-monospace text-white">$${itemTotal.toFixed(2)}</span>
+                </div>
+                ${labelMods}
+                <div class="d-flex justify-content-between align-items-center mt-2">
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="cambiarCantidad(${index}, -1)"><i class="fa-solid fa-minus"></i></button>
+                        <span class="item-qty-badge text-white">${item.cantidad}</span>
+                        <button class="btn-qty" onclick="cambiarCantidad(${index}, 1)"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <button class="btn-remove-item" onclick="quitarDelCarrito(${index})">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>
+            `;
+            contenedor.appendChild(div);
+        });
+    }
+    
+    document.getElementById('total-carrito').innerText = total.toFixed(2);
+}
+
+function cambiarCantidad(index, delta) {
+    carrito[index].cantidad += delta;
+    if (carrito[index].cantidad <= 0) {
+        carrito.splice(index, 1);
+    }
+    actualizarCarritoUI();
+}
+
+function quitarDelCarrito(index) {
+    carrito.splice(index, 1);
+    actualizarCarritoUI();
+}
+
+// --- ENVÍO DE PEDIDO ---
+async function enviarPedido() {
+    if(carrito.length === 0) {
+        alert("El pedido está vacío. Agrega ítems antes de enviar.");
+        return;
+    }
+
+    let inputTicketVal = document.getElementById('nombre-mesa-ticket').value.trim();
+    let uniqueId = new Date().toISOString().slice(0, 19).replace(/[^0-9]/g, ""); 
+    
+    let ticketId = "";
+    if (tipoServicio === 'Comer aquí') {
+        if (!inputTicketVal) {
+            alert("Por favor, introduce el número de Mesa.");
+            return;
+        }
+        ticketId = `Mesa ${inputTicketVal}`;
+    } else if (tipoServicio === 'Para llevar') {
+        ticketId = inputTicketVal ? `Para Llevar: ${inputTicketVal}` : `Para Llevar #${uniqueId.slice(-4)}`;
+    } else if (tipoServicio === 'A domicilio') {
+        let direccion = document.getElementById('direccion-delivery').value.trim();
+        let telefono = document.getElementById('telefono-delivery').value.trim();
+        if (!inputTicketVal || !direccion) {
+            alert("Para entregas a domicilio, se requiere el nombre del cliente y la dirección.");
+            return;
+        }
+        ticketId = `Domicilio: ${inputTicketVal} | Tel: ${telefono || 'N/A'} | Dir: ${direccion}`;
+    }
+
+    // --- COMPARACIÓN Y AGREGAR BANDERAS DE NUEVO / MODIFICADO (KDS ALERTS) ---
+    if (editandoOrdenObjeto && editandoOrdenObjeto.items) {
+        carrito.forEach(item => {
+            const getModsKey = (mods) => JSON.stringify((mods || []).map(m => typeof m === 'object' ? m.nombre : m).sort());
+            const itemKey = item.nombre + getModsKey(item.mods) + item.negocio;
+            
+            const origItem = editandoOrdenObjeto.items.find(orig => {
+                const origKey = orig.nombre + getModsKey(orig.mods) + orig.negocio;
+                return origKey === itemKey;
+            });
+            
+            if (origItem) {
+                const prevQty = origItem.cantidad || 1;
+                const newQty = item.cantidad || 1;
+                if (newQty > prevQty) {
+                    item.is_modified = true;
+                    item.original_qty = origItem.original_qty || prevQty;
+                } else {
+                    if (origItem.is_new) {
+                        item.is_new = true;
+                    } else if (origItem.is_modified) {
+                        item.is_modified = true;
+                        item.original_qty = origItem.original_qty;
+                    }
+                }
+            } else {
+                item.is_new = true;
+            }
+        });
+    }
+
+    const promises = [];
+    const dlItems = carrito.filter(item => item.negocio === 'don_lomito');
+    const miItems = carrito.filter(item => item.negocio === 'mistun');
+
+    if (editandoOrdenObjeto && editandoOrdenObjeto.ticket_id) {
+        await fetch(`/reemplazar_grupo_ordenes/${editandoOrdenObjeto.ticket_id}`, { method: 'POST' });
+    }
+
+    if (dlItems.length > 0) {
+        promises.push(fetch('/crear_orden', {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ticket_id: ticketId,
+                negocio: 'don_lomito', 
+                tipo_servicio: tipoServicio, 
+                items: dlItems, 
+                total: dlItems.reduce((sum, item) => sum + (item.totalItem * item.cantidad), 0).toFixed(2)
+            })
+        }));
+    }
+
+    if (miItems.length > 0) {
+        promises.push(fetch('/crear_orden', {
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ticket_id: ticketId,
+                negocio: 'mistun', 
+                tipo_servicio: tipoServicio, 
+                items: miItems, 
+                total: miItems.reduce((sum, item) => sum + (item.totalItem * item.cantidad), 0).toFixed(2)
+            })
+        }));
+    }
+
+    Promise.all(promises)
+        .then(() => location.reload())
+        .catch(error => console.error('Error enviando pedidos:', error));
+}
+
+function editarOrden(id, ticket_id, totalOrden, tipo, negocio, estado) {
+    limpiarCarrito(); 
+    
+    const items = JSON.parse(document.getElementById('items-data-' + id).textContent);
+    
+    editandoOrdenObjeto = { id: id, ticket_id: ticket_id, items: items, total: totalOrden, tipo_servicio: tipo, negocio: negocio, estado: estado };
+    document.getElementById('editando-label').innerText = "Editando (" + ticket_id + ")";
+    
+    seleccionarServicio(tipo);
+    
+    let rawTicket = ticket_id;
+    if (tipo === 'Comer aquí') {
+        rawTicket = ticket_id.replace('Mesa ', '');
+    } else if (tipo === 'Para llevar') {
+        rawTicket = ticket_id.replace('Para Llevar: ', '');
+    } else if (tipo === 'A domicilio') {
+        const parts = ticket_id.split(' | ');
+        const namePart = parts[0] ? parts[0].replace('Domicilio: ', '') : '';
+        const phonePart = parts[1] ? parts[1].replace('Tel: ', '') : '';
+        const dirPart = parts[2] ? parts[2].replace('Dir: ', '') : '';
+        
+        rawTicket = namePart;
+        document.getElementById('direccion-delivery').value = dirPart;
+        document.getElementById('telefono-delivery').value = phonePart;
+    }
+    
+    document.getElementById('nombre-mesa-ticket').value = rawTicket;
+    carrito = items; 
+    actualizarCarritoUI();
+}
+
+function limpiarCarrito() {
+    carrito = [];
+    total = 0;
+    itemPrep = null;
+    editandoOrdenObjeto = null; 
+    document.getElementById('editando-label').innerText = "Nuevo";
+    document.getElementById('nombre-mesa-ticket').value = '';
+    document.getElementById('direccion-delivery').value = '';
+    document.getElementById('telefono-delivery').value = '';
+    actualizarCarritoUI();
+}
+
+// --- COBRO DE TICKET CON CALCULADORA ---
+let ordenAPagar = null;
+let metodoSeleccionado = 'Efectivo';
+let modalActiveOrders = [];
+let originalTotal = 0;
+let isSplitActive = false;
+let selectedSplitBrand = null;
+
+function abrirModalPago(id, total, ticketId) {
+    ordenAPagar = { id: id, total: total, ticketId: ticketId };
+    
+    document.getElementById('pago-id').innerText = id;
+    document.getElementById('pago-ticket-id').innerText = ticketId;
+    document.getElementById('pago-total').innerText = total.toFixed(2);
+    
+    document.getElementById('monto-recibido').value = '';
+    document.getElementById('monto-cambio').innerText = '0.00';
+    
+    const splitSec = document.getElementById('split-payment-section');
+    if (splitSec) splitSec.style.display = 'none';
+    
+    seleccionarMetodo('Efectivo');
+    if (modalPagoInstance) {
+        modalPagoInstance.show();
+    }
+}
+
+// --- NUEVO: COBRAR TICKET MESA COMPLETA UNIFICADO ---
+function abrirModalPagoTicket(btn) {
+    const ticketId = btn.dataset.ticketId;
+    const total = parseFloat(btn.dataset.total);
+    const orders = JSON.parse(btn.dataset.orders || '[]');
+    
+    modalActiveOrders = orders;
+    originalTotal = total;
+    isSplitActive = false;
+    selectedSplitBrand = null;
+    
+    ordenAPagar = { id: null, total: total, ticketId: ticketId };
+    
+    document.getElementById('pago-id').innerText = 'Mesa Unificada';
+    document.getElementById('pago-ticket-id').innerText = ticketId;
+    document.getElementById('pago-total').innerText = total.toFixed(2);
+    
+    document.getElementById('monto-recibido').value = '';
+    document.getElementById('monto-cambio').innerText = '0.00';
+    
+    const toggleSwitch = document.getElementById('toggle-split-payment');
+    if (toggleSwitch) toggleSwitch.checked = false;
+    
+    const splitSec = document.getElementById('split-payment-section');
+    if (splitSec) {
+        if (orders.length > 1) {
+            splitSec.style.display = 'block';
+            
+            const dlOrder = orders.find(o => o.negocio === 'don_lomito');
+            const miOrder = orders.find(o => o.negocio === 'mistun');
+            
+            const btnDl = document.getElementById('btn-split-dl');
+            const btnMi = document.getElementById('btn-split-mi');
+            
+            if (btnDl && dlOrder) {
+                btnDl.style.display = 'block';
+                btnDl.innerText = `Don Lomito ($${dlOrder.total.toFixed(2)})`;
+            } else if (btnDl) {
+                btnDl.style.display = 'none';
+            }
+            
+            if (btnMi && miOrder) {
+                btnMi.style.display = 'block';
+                btnMi.innerText = `Mistun ($${miOrder.total.toFixed(2)})`;
+            } else if (btnMi) {
+                btnMi.style.display = 'none';
+            }
+        } else {
+            splitSec.style.display = 'none';
+        }
+    }
+    
+    const splitContainer = document.getElementById('split-brands-container');
+    if (splitContainer) splitContainer.style.display = 'none';
+    
+    seleccionarMetodo('Efectivo');
+    if (modalPagoInstance) {
+        modalPagoInstance.show();
+    }
+}
+
+function toggleSplitPaymentView() {
+    const active = document.getElementById('toggle-split-payment').checked;
+    isSplitActive = active;
+    
+    const splitContainer = document.getElementById('split-brands-container');
+    if (splitContainer) {
+        splitContainer.style.display = active ? 'block' : 'none';
+    }
+    
+    if (active) {
+        const dlOrder = modalActiveOrders.find(o => o.negocio === 'don_lomito');
+        const miOrder = modalActiveOrders.find(o => o.negocio === 'mistun');
+        if (dlOrder) {
+            selectSplitBrand('don_lomito');
+        } else if (miOrder) {
+            selectSplitBrand('mistun');
+        }
+    } else {
+        ordenAPagar = { id: null, total: originalTotal, ticketId: ordenAPagar.ticketId };
+        document.getElementById('pago-id').innerText = 'Mesa Unificada';
+        document.getElementById('pago-total').innerText = originalTotal.toFixed(2);
+        
+        const btnDl = document.getElementById('btn-split-dl');
+        const btnMi = document.getElementById('btn-split-mi');
+        if (btnDl) {
+            btnDl.classList.remove('btn-danger');
+            btnDl.classList.add('btn-outline-danger');
+        }
+        if (btnMi) {
+            btnMi.classList.remove('btn-success');
+            btnMi.classList.add('btn-outline-success');
+        }
+        calcularCambio();
+    }
+}
+
+function selectSplitBrand(brand) {
+    selectedSplitBrand = brand;
+    const orderObj = modalActiveOrders.find(o => o.negocio === brand);
+    if (!orderObj) return;
+    
+    ordenAPagar = { id: orderObj.id, total: orderObj.total, ticketId: ordenAPagar.ticketId };
+    
+    document.getElementById('pago-id').innerText = `Orden #${orderObj.id} (${brand === 'don_lomito' ? 'Don Lomito' : 'Mistun'})`;
+    document.getElementById('pago-total').innerText = orderObj.total.toFixed(2);
+    
+    const btnDl = document.getElementById('btn-split-dl');
+    const btnMi = document.getElementById('btn-split-mi');
+    
+    if (brand === 'don_lomito') {
+        if (btnDl) {
+            btnDl.classList.remove('btn-outline-danger');
+            btnDl.classList.add('btn-danger');
+        }
+        if (btnMi) {
+            btnMi.classList.remove('btn-success');
+            btnMi.classList.add('btn-outline-success');
+        }
+    } else {
+        if (btnMi) {
+            btnMi.classList.remove('btn-outline-success');
+            btnMi.classList.add('btn-success');
+        }
+        if (btnDl) {
+            btnDl.classList.remove('btn-danger');
+            btnDl.classList.add('btn-outline-danger');
+        }
+    }
+    calcularCambio();
+}
+
+function editarPedidoCompleto(btn) {
+    const ticketId = btn.dataset.ticketId;
+    const tipo = btn.dataset.tipo;
+    
+    limpiarCarrito();
+    
+    const groupContainer = btn.closest('.ticket-group');
+    const scriptTags = groupContainer.querySelectorAll('[id^="items-data-"]');
+    
+    let combinedItems = [];
+    let combinedOrders = [];
+    
+    scriptTags.forEach(scriptTag => {
+        const id = scriptTag.id.replace('items-data-', '');
+        const items = JSON.parse(scriptTag.textContent);
+        combinedItems = combinedItems.concat(items);
+        
+        combinedOrders.push({
+            id: parseInt(id)
+        });
+    });
+    
+    editandoOrdenObjeto = {
+        ticket_id: ticketId,
+        items: JSON.parse(JSON.stringify(combinedItems)),
+        tipo_servicio: tipo,
+        orders: combinedOrders
+    };
+    
+    document.getElementById('editando-label').innerText = "Editando (" + ticketId + ")";
+    seleccionarServicio(tipo);
+    
+    let rawTicket = ticketId;
+    if (tipo === 'Comer aquí') {
+        rawTicket = ticketId.replace('Mesa ', '');
+    } else if (tipo === 'Para llevar') {
+        rawTicket = ticketId.replace('Para Llevar: ', '');
+    } else if (tipo === 'A domicilio') {
+        const parts = ticketId.split(' | ');
+        const namePart = parts[0] ? parts[0].replace('Domicilio: ', '') : '';
+        const phonePart = parts[1] ? parts[1].replace('Tel: ', '') : '';
+        const dirPart = parts[2] ? parts[2].replace('Dir: ', '') : '';
+        
+        rawTicket = namePart;
+        document.getElementById('direccion-delivery').value = dirPart;
+        document.getElementById('telefono-delivery').value = phonePart;
+    }
+    
+    document.getElementById('nombre-mesa-ticket').value = rawTicket;
+    
+    carrito = combinedItems;
+    actualizarCarritoUI();
+}
+
+function seleccionarMetodo(metodo) {
+    metodoSeleccionado = metodo;
+    document.getElementById('metodo-nombre').innerText = metodo;
+    
+    // UI active buttons
+    document.querySelectorAll('.metodo-pago-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById(`btn-metodo-${metodo}`).classList.add('active');
+    
+    const refWrapper = document.getElementById('wrapper-referencia-pago');
+    const refLabel = document.getElementById('label-referencia-pago');
+    const refInput = document.getElementById('referencia-pago-input');
+    const refError = document.getElementById('error-referencia-pago');
+    
+    refInput.value = '';
+    refError.style.display = 'none';
+    
+    if (metodo === 'Efectivo') {
+        document.getElementById('calc-efectivo').style.display = 'block';
+        document.getElementById('confirmar-pago').style.display = 'none';
+        refWrapper.style.display = 'none';
+        document.getElementById('monto-recibido').focus();
+    } else if (metodo === 'Tarjeta') {
+        document.getElementById('calc-efectivo').style.display = 'none';
+        document.getElementById('confirmar-pago').style.display = 'block';
+        refWrapper.style.display = 'block';
+        refLabel.innerHTML = '<i class="fa-solid fa-receipt me-1 text-primary"></i> Número de Referencia (Voucher)';
+        refInput.placeholder = 'Ej: 123456789';
+        refInput.focus();
+    } else if (metodo === 'Transferencia') {
+        document.getElementById('calc-efectivo').style.display = 'none';
+        document.getElementById('confirmar-pago').style.display = 'block';
+        refWrapper.style.display = 'block';
+        refLabel.innerHTML = '<i class="fa-solid fa-building-columns me-1 text-info"></i> Número de Referencia (Transferencia)';
+        refInput.placeholder = 'Ej: TXN987654321';
+        refInput.focus();
+    }
+}
+
+function rellenarEfectivo(cantidad) {
+    const input = document.getElementById('monto-recibido');
+    input.value = cantidad.toFixed(2);
+    calcularCambio();
+}
+
+function calcularCambio() {
+    let rec = parseFloat(document.getElementById('monto-recibido').value) || 0;
+    let cam = rec - ordenAPagar.total;
+    document.getElementById('monto-cambio').innerText = cam > 0 ? cam.toFixed(2) : "0.00";
+}
+
+function procesarPago() {
+    let refVal = "";
+    
+    if (metodoSeleccionado === 'Efectivo') {
+        let rec = parseFloat(document.getElementById('monto-recibido').value) || 0;
+        if (rec < ordenAPagar.total) {
+            alert("El monto de efectivo recibido es menor al total del ticket.");
+            return;
+        }
+    } else if (metodoSeleccionado === 'Tarjeta' || metodoSeleccionado === 'Transferencia') {
+        const refInput = document.getElementById('referencia-pago-input');
+        const refError = document.getElementById('error-referencia-pago');
+        refVal = refInput.value.trim();
+        
+        if (!refVal) {
+            refError.style.display = 'block';
+            refInput.focus();
+            return;
+        }
+    }
+    
+    const payload = {
+        metodo: metodoSeleccionado,
+        referencia: refVal
+    };
+    if (ordenAPagar.id) {
+        payload.id = ordenAPagar.id;
+    } else {
+        payload.ticket_id = ordenAPagar.ticketId;
+    }
+    
+    fetch('/finalizar_pago', {
+        method: 'POST', 
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    }).then(() => location.reload());
+}
+</script>
+</body>
+</html>

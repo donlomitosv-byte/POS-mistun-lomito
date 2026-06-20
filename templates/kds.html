@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDS {{ negocio.replace('_', ' ').title() }}</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-kds: #0b0f19;
+            --card-kds: #161f30;
+            --text-kds: #f8fafc;
+            --border-kds: #24324d;
+            --text-muted: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --primary-color: #3b82f6;
+            
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-kds);
+            color: var(--text-kds);
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+        }
+
+        .kds-navbar {
+            background-color: #0f172a;
+            border-bottom: 2px solid var(--border-kds);
+            padding: 16px 24px;
+        }
+        
+        .kds-title {
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+        
+        .brand-badge {
+            font-size: 0.95rem;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .order-card {
+            background-color: var(--card-kds);
+            border: 2px solid var(--border-kds);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 320px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        
+        /* Bordes dinámicos según tiempo */
+        .order-card.delay-safe { border-top: 6px solid var(--success-color); }
+        .order-card.delay-warning { border-top: 6px solid var(--warning-color); }
+        .order-card.delay-danger { 
+            border-top: 6px solid var(--danger-color);
+            animation: pulse-border 1.5s infinite alternate;
+        }
+
+        @keyframes pulse-border {
+            0% { border-color: #24324d; }
+            100% { border-color: var(--danger-color); }
+        }
+
+        .order-header {
+            background-color: rgba(15, 23, 42, 0.4);
+            padding: 16px;
+            border-bottom: 1px solid var(--border-kds);
+        }
+
+        .order-body {
+            padding: 16px;
+            flex-grow: 1;
+        }
+
+        .order-footer {
+            padding: 16px;
+            background-color: rgba(15, 23, 42, 0.4);
+            border-top: 1px solid var(--border-kds);
+        }
+
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .item-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .item-list li:last-child {
+            border-bottom: none;
+        }
+
+        .item-qty {
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: #60a5fa;
+            margin-right: 8px;
+        }
+        
+        .item-name {
+            font-weight: 600;
+            font-size: 1.15rem;
+        }
+
+        .item-mods {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-style: italic;
+            padding-left: 28px;
+        }
+
+        .timer-badge {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.25rem;
+            font-weight: 800;
+            background-color: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-kds);
+            padding: 4px 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .timer-badge.safe { color: var(--success-color); }
+        .timer-badge.warning { color: var(--warning-color); }
+        .timer-badge.danger { color: var(--danger-color); }
+
+        .service-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        .service-badge.mesa { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid #3b82f6; }
+        .service-badge.llevar { background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid #f59e0b; }
+        .service-badge.domicilio { background-color: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid #a855f7; }
+
+        .btn-kds-action {
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 12px;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            border-radius: 8px;
+            border: none;
+            transition: var(--transition);
+        }
+        
+        .btn-start {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        .btn-start:hover {
+            background-color: #2563eb;
+        }
+        
+        .btn-finish {
+            background-color: var(--success-color);
+            color: white;
+        }
+        .btn-finish:hover {
+            background-color: #059669;
+        }
+
+        .category-tag {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            background-color: #334155;
+            color: #f1f5f9;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-left: 6px;
+        }
+        
+        /* Contraste y legibilidad mejorados en las tarjetas del KDS */
+        .order-card .text-muted,
+        .order-card .text-secondary,
+        .order-card .text-white-50 {
+            color: #e2e8f0 !important;
+        }
+        
+        .order-card .item-mods {
+            color: #f1f5f9 !important;
+        }
+        
+        @keyframes pulse-bg {
+            0% { opacity: 0.65; }
+            100% { opacity: 1; }
+        }
+        .animate-pulse {
+            animation: pulse-bg 1s infinite alternate;
+        }
+
+        .item-list li.text-warning {
+            color: #fbbf24 !important;
+            border-left: 3px solid #fbbf24;
+            padding-left: 8px !important;
+            background-color: rgba(245, 158, 11, 0.08);
+            border-radius: 4px;
+            margin: 4px 0;
+        }
+        .item-list li.text-warning .item-qty {
+            color: #fbbf24 !important;
+        }
+
+        @keyframes subtle-flash {
+            0% { background-color: var(--card-kds); }
+            100% { background-color: rgba(239, 68, 68, 0.12); }
+        }
+        .order-card.danger-delay {
+            border: 2px solid var(--danger-color) !important;
+            animation: subtle-flash 1s infinite alternate;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="kds-navbar">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            <i class="fa-solid fa-desktop fa-2x text-primary"></i>
+            <span class="kds-title">Control de Producción</span>
+        </div>
+        <div>
+            <span class="brand-badge {{ 'bg-danger text-white' if negocio == 'don_lomito' else 'bg-success text-white' }}">
+                {{ negocio.replace('_', ' ').upper() }}
+            </span>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid py-4 px-4">
+    <div id="orders-container" class="row">
+        <!-- Las órdenes se cargarán dinámicamente -->
+        <div class="col-12 text-center text-secondary py-5">
+            <i class="fa-solid fa-spinner fa-spin fa-3x mb-3 text-primary"></i>
+            <p>Conectando con el panel de pedidos...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const negocio = "{{ negocio }}";
+    const ordersContainer = document.getElementById('orders-container');
+
+    // Parsear UTC de forma segura y compatible con todos los navegadores (incluyendo Safari y desfases de microsegundos)
+    function parseUTCDate(isoStr) {
+        if (!isoStr) return null;
+        if (isoStr instanceof Date) return isoStr;
+        if (typeof isoStr !== 'string') return new Date(isoStr);
+        
+        const s = isoStr.trim();
+        if (s === 'null' || s === 'undefined' || s === '') return null;
+        
+        // Expresión regular robusta para extraer partes de fecha ISO (soporta microsegundos de Python y zona horaria Z/offset)
+        const regex = /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:?\d{2})?$/;
+        const match = s.match(regex);
+        
+        if (match) {
+            const year = parseInt(match[1], 10);
+            const month = parseInt(match[2], 10) - 1; // 0-indexed en JS
+            const day = parseInt(match[3], 10);
+            const hour = parseInt(match[4], 10);
+            const minute = parseInt(match[5], 10);
+            const second = parseInt(match[6], 10);
+            
+            let ms = 0;
+            if (match[7]) {
+                // Safari falla si hay más de 3 dígitos de milisegundos. Cortamos a 3 dígitos.
+                ms = parseInt(match[7].slice(0, 3).padEnd(3, '0'), 10);
+            }
+            
+            const tz = match[8];
+            if (!tz || tz === 'Z') {
+                return new Date(Date.UTC(year, month, day, hour, minute, second, ms));
+            } else {
+                const dateUTC = new Date(Date.UTC(year, month, day, hour, minute, second, ms));
+                const sign = tz[0] === '+' ? -1 : 1;
+                const tzParts = tz.slice(1).split(':');
+                const tzHours = parseInt(tzParts[0], 10);
+                const tzMins = tzParts[1] ? parseInt(tzParts[1], 10) : 0;
+                const offsetMinutes = tzHours * 60 + tzMins;
+                
+                dateUTC.setMinutes(dateUTC.getMinutes() + sign * offsetMinutes);
+                return dateUTC;
+            }
+        }
+        
+        // Alternativa si el regex no coincide por algún formato extraño
+        let normalized = s.replace(/\s+/g, 'T');
+        if (!normalized.endsWith('Z') && !normalized.includes('+') && !normalized.includes('-')) {
+            normalized += 'Z';
+        }
+        const d = new Date(normalized);
+        return isNaN(d.getTime()) ? null : d;
+    }
+
+    // Formatear hora local de forma legible
+    function formatLocalTime(isoDateStr) {
+        if (!isoDateStr) return "N/A";
+        const date = parseUTCDate(isoDateStr);
+        if (!date || isNaN(date.getTime())) return "N/A";
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    }
+
+    // Offset de tiempo global entre servidor y cliente
+    window.serverTimeOffset = 0;
+
+    // Función para calcular segundos transcurridos con compensación de desfase de reloj
+    function getSecondsElapsed(isoDateString) {
+        if (!isoDateString) return 0;
+        const d = parseUTCDate(isoDateString);
+        if (!d || isNaN(d.getTime())) return 0;
+        
+        const clientTime = new Date().getTime();
+        const serverTime = clientTime + (window.serverTimeOffset || 0);
+        let seconds = Math.floor((serverTime - d.getTime()) / 1000);
+        
+        // Ajuste dinámico de desfase si el reloj local está retrasado respecto al servidor
+        if (seconds < 0) {
+            window.serverTimeOffset = (window.serverTimeOffset || 0) - (seconds * 1000);
+            seconds = 0;
+        }
+        return seconds;
+    }
+
+    // Formatear segundos a formato MM:SS o HH:MM:SS
+    function formatTime(totalSeconds) {
+        if (totalSeconds < 0) totalSeconds = 0;
+        const hrs = Math.floor(totalSeconds / 3600);
+        const mins = Math.floor((totalSeconds % 3600) / 60);
+        const secs = totalSeconds % 60;
+        const minsStr = String(mins).padStart(2, '0');
+        const secsStr = String(secs).padStart(2, '0');
+        if (hrs > 0) {
+            const hrsStr = String(hrs).padStart(2, '0');
+            return `${hrsStr}:${minsStr}:${secsStr}`;
+        }
+        return `${minsStr}:${secsStr}`;
+    }
+
+    // Actualizar dinámicamente cronómetros y colores de demoras
+    function updateAllTimers() {
+        document.querySelectorAll('.active-timer').forEach(el => {
+            const estado = el.dataset.estado;
+            const startStr = el.dataset.start;
+            if (!startStr) return;
+            
+            const seconds = getSecondsElapsed(startStr);
+            el.innerText = formatTime(seconds);
+            
+            // Buscar la tarjeta contenedora
+            const card = el.closest('.order-card');
+            const badge = el.closest('.timer-badge');
+            
+            if (card && badge) {
+                // Remover clases viejas de demora y parpadeo
+                card.classList.remove('delay-safe', 'delay-warning', 'delay-danger', 'danger-delay');
+                badge.classList.remove('safe', 'warning', 'danger');
+                
+                let limitWarning = 300; // default 5m
+                let limitDanger = 600;  // default 10m
+                
+                if (estado === 'Enviada_Cocina') {
+                    limitWarning = 120; // 2 min
+                    limitDanger = 300;  // 5 min
+                } else if (estado === 'Preparando') {
+                    limitWarning = 300; // 5 min
+                    limitDanger = 480;  // 8 min
+                } else if (estado === 'Lista_Para_Servir') {
+                    limitWarning = 180; // 3 min
+                    limitDanger = 300;  // 5 min
+                }
+                
+                if (seconds < limitWarning) {
+                    card.classList.add('delay-safe');
+                    badge.classList.add('safe');
+                } else if (seconds < limitDanger) {
+                    card.classList.add('delay-warning');
+                    badge.classList.add('warning');
+                } else {
+                    card.classList.add('delay-danger', 'danger-delay');
+                    badge.classList.add('danger');
+                }
+            }
+        });
+    }
+
+    // Iniciar Intervalo
+    setInterval(updateAllTimers, 1000);
+
+    // Renderizar comandas
+    function renderOrders(orders) {
+        ordersContainer.innerHTML = ''; 
+        if (orders.length === 0) {
+            ordersContainer.innerHTML = `
+                <div class="col-12 text-center text-secondary py-5">
+                    <i class="fa-solid fa-mug-hot fa-3x mb-3 text-secondary opacity-50"></i>
+                    <p class="fs-5">No hay órdenes pendientes en este momento.</p>
+                    <small class="text-muted">¡Buen trabajo! La cocina está al día.</small>
+                </div>`;
+            return;
+        }
+
+        orders.forEach(order => {
+            let nextStatusBtnHtml = '';
+            let timerHtml = '';
+            let timeColorClass = 'safe';
+            let cardColorClass = 'delay-safe';
+            let milestonesHtml = '';
+
+            // Identificar servicio badge
+            let labelServicio = order.tipo_servicio || 'Restaurante';
+            let servicioBadgeClass = 'mesa';
+            let servicioIcon = 'fa-table';
+            
+            if (labelServicio.toLowerCase().includes('llevar')) {
+                servicioBadgeClass = 'llevar';
+                servicioIcon = 'fa-bag-shopping';
+            } else if (labelServicio.toLowerCase().includes('domicilio')) {
+                servicioBadgeClass = 'domicilio';
+                servicioIcon = 'fa-motorcycle';
+            }
+
+            switch (order.estado) {
+                case 'Enviada_Cocina':
+                    nextStatusBtnHtml = `<button class="btn btn-kds-action btn-start w-100 py-3" onclick="updateOrderStatus(${order.id}, 'Preparando')"><i class="fa-solid fa-fire-burner me-1"></i> Iniciar Preparación</button>`;
+                    timerHtml = `<div class="timer-badge ${timeColorClass}"><i class="fa-regular fa-clock"></i> <span class="active-timer" data-estado="Enviada_Cocina" data-start="${order.creado_at || order.fecha_creacion}">${formatTime(getSecondsElapsed(order.creado_at || order.fecha_creacion))}</span></div>`;
+                    
+                    milestonesHtml = `
+                        <div class="mt-2 pt-2 border-top border-secondary text-white-50 small">
+                            <div><i class="fa-regular fa-clock me-1 text-primary"></i> <b>En cola desde:</b> ${formatLocalTime(order.creado_at || order.fecha_creacion)}</div>
+                        </div>
+                    `;
+                    break;
+                case 'Preparando':
+                    nextStatusBtnHtml = `<button class="btn btn-kds-action btn-finish w-100 py-3" onclick="updateOrderStatus(${order.id}, 'Lista_Para_Servir')"><i class="fa-solid fa-bell me-1"></i> Orden Finalizada</button>`;
+                    timerHtml = `<div class="timer-badge ${timeColorClass}"><i class="fa-solid fa-fire-burner"></i> <span class="active-timer" data-estado="Preparando" data-start="${order.preparacion_at || order.fecha_creacion}">${formatTime(getSecondsElapsed(order.preparacion_at || order.fecha_creacion))}</span></div>`;
+                    
+                    // Calcular tiempo en cola
+                    let prepTimeStr = order.preparacion_at || new Date().toISOString();
+                    let createdTimeStr = order.creado_at || order.fecha_creacion;
+                    let waitSeconds = Math.max(0, Math.floor((parseUTCDate(prepTimeStr) - parseUTCDate(createdTimeStr)) / 1000));
+                    let waitTimeFormatted = formatTime(waitSeconds);
+                    
+                    milestonesHtml = `
+                        <div class="mt-2 pt-2 border-top border-secondary text-white-50 small">
+                            <div><i class="fa-solid fa-play me-1 text-warning"></i> <b>Aceptado a las:</b> ${formatLocalTime(order.preparacion_at)}</div>
+                            <div><i class="fa-solid fa-hourglass-half me-1 text-warning"></i> <b>Espera en cola:</b> ${waitTimeFormatted}</div>
+                        </div>
+                    `;
+                    break;
+                case 'Lista_Para_Servir':
+                    nextStatusBtnHtml = `<button class="btn btn-secondary w-100 py-3 btn-kds-action" disabled><i class="fa-solid fa-spinner fa-spin me-1"></i> Esperando Entrega</button>`; 
+                    timerHtml = `<div class="timer-badge ${timeColorClass}"><i class="fa-solid fa-stopwatch-20"></i> <span class="active-timer" data-estado="Lista_Para_Servir" data-start="${order.listo_at || order.fecha_creacion}">${formatTime(getSecondsElapsed(order.listo_at || order.fecha_creacion))}</span></div>`;
+                    
+                    // Calcular cola e hitos de preparación
+                    let pTimeStr = order.preparacion_at || order.fecha_creacion;
+                    let cTimeStr = order.creado_at || order.fecha_creacion;
+                    let wSeconds = Math.max(0, Math.floor((parseUTCDate(pTimeStr) - parseUTCDate(cTimeStr)) / 1000));
+                    let wTimeFormatted = formatTime(wSeconds);
+                    
+                    let listoTimeStr = order.listo_at || new Date().toISOString();
+                    let cookSeconds = Math.max(0, Math.floor((parseUTCDate(listoTimeStr) - parseUTCDate(pTimeStr)) / 1000));
+                    let cookTimeFormatted = formatTime(cookSeconds);
+
+                    milestonesHtml = `
+                        <div class="mt-2 pt-2 border-top border-secondary text-white-50 small">
+                            <div><i class="fa-solid fa-check me-1 text-success"></i> <b>Aceptado:</b> ${formatLocalTime(order.preparacion_at)} <span class="text-white-50">(Cola: ${wTimeFormatted})</span></div>
+                            <div><i class="fa-solid fa-circle-check me-1 text-success"></i> <b>Terminado:</b> ${formatLocalTime(order.listo_at)} <span class="text-white-50">(Cocina: ${cookTimeFormatted})</span></div>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            // Check if any item is new or modified
+            const hasChanges = order.items.some(item => item.is_new || item.is_modified);
+            const changeBannerHtml = hasChanges ? `
+                <div class="bg-warning text-dark text-center py-2 fw-bold animate-pulse" style="font-size: 0.85rem; border-radius: 4px; margin-bottom: 12px; border: 1px solid #d97706;">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i> [⚠️ CAMBIO / AGREGADO]
+                </div>
+            ` : '';
+
+            // Formatear items e incluir modificadores de forma segura
+            const itemsHtml = order.items.map(item => {
+                let formatedModsText = '';
+                if (item.mods && item.mods.length > 0) {
+                    formatedModsText = item.mods.map(m => typeof m === 'object' ? m.nombre : m).join(', ');
+                }
+                
+                let changeLabel = '';
+                let itemStyleClass = '';
+                if (item.is_new) {
+                    changeLabel = ' <span class="badge bg-danger text-white ms-1" style="font-size:0.65rem;">NUEVO</span>';
+                    itemStyleClass = 'text-warning fw-bold';
+                } else if (item.is_modified) {
+                    changeLabel = ` <span class="badge bg-warning text-dark ms-1" style="font-size:0.65rem;">MODIF (antes: ${item.original_qty})</span>`;
+                    itemStyleClass = 'text-warning fw-bold';
+                }
+                
+                return `
+                    <li class="${itemStyleClass}">
+                        <span class="item-qty">${item.cantidad}x</span>
+                        <span class="item-name">${item.nombre}</span> 
+                        ${changeLabel}
+                        ${item.categoria ? `<span class="category-tag">${item.categoria}</span>` : ''}
+                        ${formatedModsText ? `<span class="item-mods"><i class="fa-solid fa-arrow-turn-up fa-rotate-90 me-1"></i>${formatedModsText}</span>` : ''}
+                    </li>
+                `;
+            }).join('');
+
+            // Estructurar el ticket de mesa/entrega
+            let displayTicketHeader = order.ticket_id;
+            let displayTicketInfo = "";
+            
+            // Si es domicilio, mostrar dirección desglosada de forma legible en el ticket
+            if (labelServicio.toLowerCase().includes('domicilio')) {
+                const parts = order.ticket_id.split(' | ');
+                const clientName = parts[0] ? parts[0].replace('Domicilio: ', '') : '';
+                const clientPhone = parts[1] ? parts[1].replace('Tel: ', '') : '';
+                const clientDir = parts[2] ? parts[2].replace('Dir: ', '') : '';
+                
+                displayTicketHeader = `Envío: ${clientName}`;
+                displayTicketInfo = `
+                    <div class="mt-2 text-warning small">
+                        <div><i class="fa-solid fa-phone me-1"></i> ${clientPhone}</div>
+                        <div><i class="fa-solid fa-location-dot me-1"></i> <b>${clientDir}</b></div>
+                    </div>`;
+            }
+
+            const orderCard = `
+                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                    <div class="order-card p-0 ${cardColorClass}">
+                        <div class="order-header">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="badge bg-secondary font-monospace">Orden #${order.id}</span>
+                                ${timerHtml}
+                            </div>
+                            <h4 class="fw-bold mb-1">${displayTicketHeader}</h4>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <span class="service-badge ${servicioBadgeClass}">
+                                    <i class="fa-solid ${servicioIcon} me-1"></i> ${labelServicio}
+                                </span>
+                            </div>
+                            ${displayTicketInfo}
+                            ${milestonesHtml}
+                        </div>
+                        <div class="order-body">
+                            ${changeBannerHtml}
+                            <ul class="item-list">
+                                ${itemsHtml}
+                            </ul>
+                        </div>
+                        <div class="order-footer">
+                            ${nextStatusBtnHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+            ordersContainer.innerHTML += orderCard;
+        });
+        updateAllTimers();
+    }
+
+    // Polling API orders con calibración de reloj basada en cabeceras HTTP
+    async function fetchOrders() {
+        try {
+            const response = await fetch(`/api/kds/orders/${negocio}?_=${Date.now()}`);
+            
+            // Calibrar desfase de reloj con el servidor usando la cabecera 'Date'
+            const serverDateStr = response.headers.get('Date');
+            if (serverDateStr) {
+                const serverTime = new Date(serverDateStr);
+                const clientTime = new Date();
+                if (!isNaN(serverTime.getTime())) {
+                    window.serverTimeOffset = serverTime.getTime() - clientTime.getTime();
+                }
+            }
+
+            const orders = await response.json();
+            renderOrders(orders);
+        } catch (error) {
+            console.error('Error al obtener órdenes KDS:', error);
+        } finally {
+            setTimeout(fetchOrders, 3000); 
+        }
+    }
+
+    // Actualizar estado comanda con calibración de reloj inmediata
+    async function updateOrderStatus(orderId, newStatus) {
+        await fetch('/api/kds/update_status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: orderId, nuevo_estado: newStatus })
+        });
+        
+        // Refrescar de inmediato con cache buster
+        const response = await fetch(`/api/kds/orders/${negocio}?_=${Date.now()}`);
+        
+        const serverDateStr = response.headers.get('Date');
+        if (serverDateStr) {
+            const serverTime = new Date(serverDateStr);
+            const clientTime = new Date();
+            if (!isNaN(serverTime.getTime())) {
+                window.serverTimeOffset = serverTime.getTime() - clientTime.getTime();
+            }
+        }
+
+        const orders = await response.json();
+        renderOrders(orders);
+    }
+
+    // Iniciar
+    fetchOrders(); 
+</script>
+</body>
+</html>
