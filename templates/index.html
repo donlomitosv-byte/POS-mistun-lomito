@@ -1136,19 +1136,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Guardar el estado inicial de las órdenes activas en el POS para sincronización
-    document.querySelectorAll('[id^="items-data-"]').forEach(scriptTag => {
-        const id = scriptTag.id.replace('items-data-', '');
-        const card = scriptTag.closest('.ticket-card');
-        if (card) {
-            const badge = card.querySelector('.badge.bg-warning');
-            if (badge) {
-                currentOrdersState[id] = badge.innerText.trim();
-            }
+    document.querySelectorAll('.ticket-card').forEach(card => {
+        const idTag = card.querySelector('[id^="items-data-"]');
+        if (idTag) {
+            const id = idTag.id.replace('items-data-', '');
+            const estado = card.dataset.estado || '';
+            currentOrdersState[id] = estado;
         }
     });
 
-    // Iniciar Polling de sincronización POS cada 3 segundos
-    setInterval(checkOrdersSync, 3000);
+    // Cargar el carrito guardado en sessionStorage (si existe)
+    cargarCarritoSession();
+
+    // Iniciar Polling de sincronización POS cada 5 segundos
+    setInterval(checkOrdersSync, 5000);
 });
 
 // --- SINCRONIZACIÓN AUTOMÁTICA EN TIEMPO REAL CON COCO/KDS ---
@@ -1244,6 +1245,80 @@ let total = 0;
 let itemPrep = null;
 let editandoOrdenObjeto = null; 
 let tipoServicio = 'Comer aquí';
+
+function guardarCarritoSession() {
+    sessionStorage.setItem('carrito', JSON.stringify(carrito));
+    sessionStorage.setItem('editandoOrdenObjeto', JSON.stringify(editandoOrdenObjeto));
+    sessionStorage.setItem('tipoServicio', tipoServicio);
+    
+    const mesaInput = document.getElementById('nombre-mesa-ticket');
+    if (mesaInput) sessionStorage.setItem('mesaTicket', mesaInput.value);
+    
+    const dirInput = document.getElementById('direccion-delivery');
+    if (dirInput) sessionStorage.setItem('direccionDelivery', dirInput.value);
+    
+    const telInput = document.getElementById('telefono-delivery');
+    if (telInput) sessionStorage.setItem('telefonoDelivery', telInput.value);
+}
+
+function cargarCarritoSession() {
+    const savedCarrito = sessionStorage.getItem('carrito');
+    if (savedCarrito) {
+        try {
+            carrito = JSON.parse(savedCarrito);
+        } catch(e) {
+            carrito = [];
+        }
+    }
+    const savedEdit = sessionStorage.getItem('editandoOrdenObjeto');
+    if (savedEdit && savedEdit !== 'null') {
+        try {
+            editandoOrdenObjeto = JSON.parse(savedEdit);
+            const label = document.getElementById('editando-label');
+            if (label && editandoOrdenObjeto) {
+                label.innerText = "Editando (" + editandoOrdenObjeto.ticket_id + ")";
+            }
+        } catch(e) {
+            editandoOrdenObjeto = null;
+        }
+    }
+    const savedTipo = sessionStorage.getItem('tipoServicio');
+    if (savedTipo) {
+        tipoServicio = savedTipo;
+        seleccionarServicio(tipoServicio);
+    }
+    
+    const savedMesa = sessionStorage.getItem('mesaTicket');
+    const mesaInput = document.getElementById('nombre-mesa-ticket');
+    if (savedMesa && mesaInput) {
+        mesaInput.value = savedMesa;
+    }
+    
+    const savedDir = sessionStorage.getItem('direccionDelivery');
+    const dirInput = document.getElementById('direccion-delivery');
+    if (savedDir && dirInput) {
+        dirInput.value = savedDir;
+    }
+    
+    const savedTel = sessionStorage.getItem('telefonoDelivery');
+    const telInput = document.getElementById('telefono-delivery');
+    if (savedTel && telInput) {
+        telInput.value = savedTel;
+    }
+    
+    if (mesaInput) {
+        mesaInput.removeEventListener('input', guardarCarritoSession);
+        mesaInput.addEventListener('input', guardarCarritoSession);
+    }
+    if (dirInput) {
+        dirInput.removeEventListener('input', guardarCarritoSession);
+        dirInput.addEventListener('input', guardarCarritoSession);
+    }
+    if (telInput) {
+        telInput.removeEventListener('input', guardarCarritoSession);
+        telInput.addEventListener('input', guardarCarritoSession);
+    }
+}
 
 // --- BINDING SEGURO DESDE ATRIBUTOS DE LAS TARJETAS ---
 function prepararItemFromCard(cardElement) {
@@ -1432,6 +1507,7 @@ function actualizarCarritoUI() {
     }
     
     document.getElementById('total-carrito').innerText = total.toFixed(2);
+    guardarCarritoSession();
 }
 
 function cambiarCantidad(index, delta) {
@@ -1447,6 +1523,7 @@ function quitarDelCarrito(index) {
     actualizarCarritoUI();
 }
 
+// --- ENVÍO DE PEDIDO ---
 // --- ENVÍO DE PEDIDO ---
 async function enviarPedido() {
     if(carrito.length === 0) {
@@ -1507,12 +1584,43 @@ async function enviarPedido() {
         });
     }
 
-    const promises = [];
-    const dlItems = carrito.filter(item => item.negocio === 'don_lomito');
-    const miItems = carrito.filter(item => item.negocio === 'mistun');
+    // Guardar referencias y vaciar inmediatamente la UI para no bloquear al usuario
+    const dlItems = [...carrito.filter(item => item.negocio === 'don_lomito')];
+    const miItems = [...carrito.filter(item => item.negocio === 'mistun')];
+    const tempEditObj = editandoOrdenObjeto;
+    
+    // Limpiar carrito local y almacenamiento de sesión
+    carrito = [];
+    editandoOrdenObjeto = null;
+    
+    // Limpiar campos de texto del formulario
+    document.getElementById('nombre-mesa-ticket').value = '';
+    const dirInput = document.getElementById('direccion-delivery');
+    const telInput = document.getElementById('telefono-delivery');
+    if (dirInput) dirInput.value = '';
+    if (telInput) telInput.value = '';
+    
+    sessionStorage.removeItem('carrito');
+    sessionStorage.removeItem('editandoOrdenObjeto');
+    sessionStorage.removeItem('mesaTicket');
+    sessionStorage.removeItem('direccionDelivery');
+    sessionStorage.removeItem('telefonoDelivery');
+    
+    actualizarCarritoUI();
 
-    if (editandoOrdenObjeto && editandoOrdenObjeto.ticket_id) {
-        await fetch(`/reemplazar_grupo_ordenes/${editandoOrdenObjeto.ticket_id}`, { method: 'POST' });
+    // Cambiar estado visual del botón temporalmente
+    const sendBtn = document.querySelector('button[onclick="enviarPedido()"]');
+    let origBtnHtml = "";
+    if (sendBtn) {
+        origBtnHtml = sendBtn.innerHTML;
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i> Enviando...`;
+    }
+
+    const promises = [];
+    
+    if (tempEditObj && tempEditObj.ticket_id) {
+        promises.push(fetch(`/reemplazar_grupo_ordenes/${tempEditObj.ticket_id}`, { method: 'POST' }));
     }
 
     if (dlItems.length > 0) {
@@ -1543,9 +1651,23 @@ async function enviarPedido() {
         }));
     }
 
+    // Ejecutar peticiones en segundo plano silenciosamente
     Promise.all(promises)
-        .then(() => location.reload())
-        .catch(error => console.error('Error enviando pedidos:', error));
+        .then(() => {
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = origBtnHtml;
+            }
+            // Recarga silenciosa en segundo plano para sincronizar el panel lateral de cuentas
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Error enviando pedidos:', error);
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = origBtnHtml;
+            }
+        });
 }
 
 function editarOrden(id, ticket_id, totalOrden, tipo, negocio, estado) {
