@@ -267,6 +267,43 @@ def reemplazar_grupo_ordenes(ticket_id):
     db.session.commit()
     return jsonify({"status": "success"})
 
+@app.route('/admin')
+def admin_panel():
+    productos = Producto.query.all()
+    hoy = date.today()
+    fecha_inicio = datetime.combine(hoy, datetime.min.time())
+    ordenes_completadas = Orden.query.filter(
+        Orden.estado_pago == 'Pagada',
+        Orden.fecha_creacion >= fecha_inicio
+    ).all()
+    total_ventas = sum(o.total for o in ordenes_completadas)
+    date_today = hoy.strftime('%d/%m/%Y')
+    return render_template('admin.html', productos=productos, total_ventas=total_ventas, count_completadas=len(ordenes_completadas), date_today=date_today)
+
+@app.route('/admin/cerrar_caja', methods=['POST'])
+def admin_cerrar_caja():
+    hoy = date.today()
+    fecha_inicio = datetime.combine(hoy, datetime.min.time())
+    ordenes_completadas = Orden.query.filter(
+        Orden.estado_pago == 'Pagada',
+        Orden.fecha_creacion >= fecha_inicio
+    ).all()
+    total_ventas = sum(o.total for o in ordenes_completadas)
+    
+    ordenes_activas = Orden.query.filter(
+        Orden.estado_pago != 'Pagada',
+        Orden.estado.notin_(['Cancelada', 'Reemplazada'])
+    ).all()
+    
+    for o in ordenes_activas:
+        o.estado_pago = 'Pagada'
+        if o.estado != 'Entregado':
+            o.estado = 'Entregado'
+            
+    db.session.commit()
+    print(f"Cierre de caja ejecutado: Total ventas = {total_ventas}, se archivaron {len(ordenes_activas)} ordenes.")
+    return redirect(url_for('admin_panel'))
+
 @app.route('/cierre_caja')
 def cierre_caja():
     periodo = request.args.get('periodo', 'dia')

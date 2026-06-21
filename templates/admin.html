@@ -132,8 +132,32 @@
 
 <div class="container">
     <div class="row">
+        <!-- SECCIÓN DE CIERRE DE CAJA -->
+        <div class="col-lg-4 col-md-12 mb-4">
+            <div class="admin-card border border-success">
+                <h5 class="fw-bold mb-4 text-success"><i class="fa-solid fa-vault me-2"></i>Cierre de Caja Diario</h5>
+                <div class="mb-3">
+                    <span class="text-muted small d-block">Fecha de Hoy</span>
+                    <span class="fw-bold fs-5 text-dark"><i class="fa-regular fa-calendar me-1"></i>{{ date_today }}</span>
+                </div>
+                <div class="mb-3">
+                    <span class="text-muted small d-block">Órdenes Completadas Hoy</span>
+                    <span class="fw-bold fs-4 text-primary font-monospace">{{ count_completadas }}</span>
+                </div>
+                <div class="mb-4">
+                    <span class="text-muted small d-block">Total de Ventas del Día</span>
+                    <span class="fw-bold fs-2 text-success font-monospace">${{ "%.2f"|format(total_ventas) }}</span>
+                </div>
+                <form action="/admin/cerrar_caja" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas Cerrar Caja? Esto marcará todas las órdenes activas como completadas y las limpiará de la pantalla de ventas.');">
+                    <button type="submit" class="btn btn-success w-100 py-3 fw-bold rounded-3">
+                        <i class="fa-solid fa-circle-check me-1"></i> CERRAR CAJA
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <!-- FORMULARIO DE REGISTRO -->
-        <div class="col-12">
+        <div class="col-lg-8 col-md-12 mb-4">
             <div class="admin-card">
                 <h5 class="fw-bold mb-4"><i class="fa-solid fa-plus-circle text-primary me-2"></i>Registrar Nuevo Producto en Menú</h5>
                 <form action="/agregar_producto" method="POST" class="row g-3">

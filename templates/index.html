@@ -211,15 +211,15 @@
         .categoria-pill-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 16px;
+            gap: 10px;
+            margin-bottom: 20px;
         }
         
         .categoria-badge {
-            padding: 6px 14px;
+            padding: 12px 20px;
             border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.95rem;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border: 1px solid transparent;
@@ -227,17 +227,49 @@
             transition: var(--transition);
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            opacity: 0.6; /* Por defecto con opacidad menor */
+            gap: 8px;
+            opacity: 0.7; /* Por defecto con opacidad menor */
         }
         .categoria-badge:hover {
-            opacity: 0.85;
+            opacity: 0.9;
             transform: scale(1.02);
         }
         .categoria-badge.active {
             opacity: 1;
-            box-shadow: 0 0 0 2px white;
+            box-shadow: 0 0 0 3px white;
             transform: scale(1.05);
+        }
+
+        /* Selector de Marca Estilo Tabs para iPad */
+        .brand-tab-btn {
+            background-color: var(--bg-card);
+            border: 2px solid var(--border-color);
+            color: var(--text-muted);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            font-size: 1.2rem;
+            letter-spacing: 0.5px;
+            transition: var(--transition);
+            outline: none;
+        }
+        
+        .brand-tab-btn:hover {
+            color: var(--text-main);
+            border-color: #3b4252;
+        }
+
+        #btn-brand-dl.active {
+            background-color: var(--dl-primary);
+            border-color: var(--dl-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(242, 108, 27, 0.4);
+        }
+
+        #btn-brand-mi.active {
+            background-color: var(--mi-primary);
+            border-color: var(--mi-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(118, 160, 53, 0.4);
         }
         
         .btn-delete-cat {
@@ -631,6 +663,9 @@
             <a href="/cierre_caja" class="btn btn-sm btn-light px-3 rounded-pill fw-bold">
                 <i class="fa-solid fa-vault me-1"></i> Cierre de Caja
             </a>
+            <a href="/admin" class="btn btn-sm btn-dark px-3 rounded-pill fw-bold border border-secondary">
+                <i class="fa-solid fa-gears me-1"></i> Panel Admin
+            </a>
         </div>
     </div>
 </header>
@@ -645,148 +680,110 @@
                 <input type="text" id="busqueda-producto" class="form-control" placeholder="Buscar un antojo o bebida..." onkeyup="filtrarProductos()">
             </div>
 
-            <!-- NAVEGACIÓN DUAL -->
-            <div class="row">
-                <!-- DON LOMITO (COMIDA) -->
-                <div class="col-12 col-xl-6 mb-4">
-                    <h4 class="brand-section-title dl-title">
-                        <i class="fa-solid fa-pepper-hot"></i> Don Lomito
-                    </h4>
-                    <div class="categoria-pill-container">
-                        {% for cat in cats_dl %}
-                            <div class="categoria-badge text-white" id="badge-dl-{{cat|replace(' ', '-')}}" onclick="filtrarPorCategoria('don_lomito', '{{cat}}', this)">
-                                {{cat}}
-                                <form action="/eliminar_categoria" method="POST" class="d-inline" onsubmit="event.stopPropagation(); return confirm('¿Borrar toda la categoría {{cat}}?');">
-                                    <input type="hidden" name="negocio" value="don_lomito">
-                                    <input type="hidden" name="categoria" value="{{cat}}">
-                                    <button type="submit" class="btn-delete-cat"><i class="fa-solid fa-circle-xmark"></i></button>
-                                </form>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Placeholder de selección -->
-                    <div id="no-products-dl" class="text-center py-4 text-white-50 small bg-dark rounded border border-secondary mb-3">
-                        <i class="fa-solid fa-hand-pointer me-1 text-warning"></i> Selecciona una categoría de Don Lomito
-                    </div>
-
-                    <div class="row g-2" id="grid-productos-dl">
-                        {% for p in productos if p.negocio == 'don_lomito' %}
-                            <div class="col-12 col-sm-6 prod-item-card dl-prod-card" data-nombre="{{p.nombre}}" data-categoria="{{p.categoria}}" style="display: none;">
-                                <div class="producto-card dl-item" 
-                                     data-id="{{ p.id }}"
-                                     data-nombre="{{ p.nombre }}"
-                                     data-precio="{{ p.precio_base }}"
-                                     data-negocio="{{ p.negocio }}"
-                                     data-categoria="{{ p.categoria }}"
-                                     onclick="prepararItemFromCard(this)">
-                                    <div class="nombre-prod">{{p.nombre}}</div>
-                                    <div class="precio-prod">${{p.precio_base}}</div>
-                                    <!-- Botón Eliminar -->
-                                    <form action="/eliminar_producto/{{p.id}}" method="POST" onsubmit="event.stopPropagation(); return confirm('¿Borrar {{p.nombre}}?');">
-                                        <button type="submit" class="btn-delete-menu"><i class="fa-solid fa-trash"></i></button>
-                                    </form>
-                                </div>
-                                <script id="data-{{p.id}}" type="application/json">
-                                    [
-                                        {% for o in p.opciones %}
-                                            {"nombre": {{ o.nombre | tojson }}, "precio": {{ o.precio_extra | tojson }}}{% if not loop.last %},{% endif %}
-                                        {% endfor %}
-                                    ]
-                                </script>
-                            </div>
-                        {% endfor %}
-                    </div>
+            <!-- SELECTOR DE MARCA (TABS PARA IPAD) -->
+            <div class="row g-2 mb-3">
+                <div class="col-6">
+                    <button type="button" id="btn-brand-dl" class="brand-tab-btn active w-100 py-3 fw-bold" onclick="seleccionarMarca('don_lomito')">
+                        <i class="fa-solid fa-pepper-hot me-2 text-danger"></i>DON LOMITO
+                    </button>
                 </div>
-
-                <!-- MISTUN (CAFÉ & REPOSTERÍA) -->
-                <div class="col-12 col-xl-6 mb-4 brand-col-mistun">
-                    <h4 class="brand-section-title mi-title">
-                        <i class="fa-solid fa-cookie"></i> Mistun Cafe
-                    </h4>
-                    <div class="categoria-pill-container">
-                        {% for cat in cats_mi %}
-                            <div class="categoria-badge text-white" id="badge-mi-{{cat|replace(' ', '-')}}" onclick="filtrarPorCategoria('mistun', '{{cat}}', this)">
-                                {{cat}}
-                                <form action="/eliminar_categoria" method="POST" class="d-inline" onsubmit="event.stopPropagation(); return confirm('¿Borrar toda la categoría {{cat}}?');">
-                                    <input type="hidden" name="negocio" value="mistun">
-                                    <input type="hidden" name="categoria" value="{{cat}}">
-                                    <button type="submit" class="btn-delete-cat"><i class="fa-solid fa-circle-xmark"></i></button>
-                                </form>
-                            </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Placeholder de selección -->
-                    <div id="no-products-mi" class="text-center py-4 text-white-50 small bg-dark rounded border border-secondary mb-3">
-                        <i class="fa-solid fa-hand-pointer me-1 text-warning"></i> Selecciona una categoría de Mistun
-                    </div>
-
-                    <div class="row g-2" id="grid-productos-mi">
-                        {% for p in productos if p.negocio == 'mistun' %}
-                            <div class="col-12 col-sm-6 prod-item-card mi-prod-card" data-nombre="{{p.nombre}}" data-categoria="{{p.categoria}}" style="display: none;">
-                                <div class="producto-card mi-item" 
-                                     data-id="{{ p.id }}"
-                                     data-nombre="{{ p.nombre }}"
-                                     data-precio="{{ p.precio_base }}"
-                                     data-negocio="{{ p.negocio }}"
-                                     data-categoria="{{ p.categoria }}"
-                                     onclick="prepararItemFromCard(this)">
-                                    <div class="nombre-prod">{{p.nombre}}</div>
-                                    <div class="precio-prod">${{p.precio_base}}</div>
-                                    <!-- Botón Eliminar -->
-                                    <form action="/eliminar_producto/{{p.id}}" method="POST" onsubmit="event.stopPropagation(); return confirm('¿Borrar {{p.nombre}}?');">
-                                        <button type="submit" class="btn-delete-menu"><i class="fa-solid fa-trash"></i></button>
-                                    </form>
-                                </div>
-                                <script id="data-{{p.id}}" type="application/json">
-                                    [
-                                        {% for o in p.opciones %}
-                                            {"nombre": {{ o.nombre | tojson }}, "precio": {{ o.precio_extra | tojson }}}{% if not loop.last %},{% endif %}
-                                        {% endfor %}
-                                    ]
-                                </script>
-                            </div>
-                        {% endfor %}
-                    </div>
+                <div class="col-6">
+                    <button type="button" id="btn-brand-mi" class="brand-tab-btn w-100 py-3 fw-bold" onclick="seleccionarMarca('mistun')">
+                        <i class="fa-solid fa-mug-hot me-2 text-success"></i>MISTUN
+                    </button>
                 </div>
             </div>
 
-            <!-- CONFIGURADOR / ADMIN FORMULARIO RÁPIDO -->
-            <div class="add-product-panel mt-3">
-                <h5 class="fw-bold mb-3"><i class="fa-solid fa-plus-circle text-primary me-2"></i>Añadir Nuevo Producto</h5>
-                <form action="/agregar_producto" method="POST" class="row g-2">
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-white-50">Marca</label>
-                        <select name="negocio" class="form-select form-select-sm">
-                            <option value="don_lomito">Don Lomito</option>
-                            <option value="mistun">Mistun</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-bold text-white-50">Categoría</label>
-                        <input type="text" name="categoria" placeholder="Ej: Bebidas, Tacos" class="form-control form-control-sm" required>
-                    </div>
-                    <div class="col-md-8">
-                        <label class="form-label small fw-bold text-white-50">Nombre del Producto</label>
-                        <input type="text" name="nombre" class="form-control form-control-sm" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small fw-bold text-white-50">Precio Base</label>
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-dark border-secondary text-white">$</span>
-                            <input type="number" step="0.1" name="precio" class="form-control" required>
+            <!-- CONTENEDOR DON LOMITO -->
+            <div id="section-brand-dl" style="display: block;">
+                <div class="categoria-pill-container">
+                    {% for cat in cats_dl %}
+                        <div class="categoria-badge text-white" id="badge-dl-{{cat|replace(' ', '-')}}" onclick="filtrarPorCategoria('don_lomito', '{{cat}}', this)">
+                            {{cat}}
+                            <form action="/eliminar_categoria" method="POST" class="d-inline" onsubmit="event.stopPropagation(); return confirm('¿Borrar toda la categoría {{cat}}?');">
+                                <input type="hidden" name="negocio" value="don_lomito">
+                                <input type="hidden" name="categoria" value="{{cat}}">
+                                <button type="submit" class="btn-delete-cat"><i class="fa-solid fa-circle-xmark"></i></button>
+                            </form>
                         </div>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small fw-bold text-white-50">Extras / Opciones (Formato: `Nombre:Precio`, separado por comas)</label>
-                        <input type="text" name="opciones" placeholder="Ej: Queso:10, Crema:5, Leche Almendra:12" class="form-control form-control-sm">
-                    </div>
-                    <div class="col-12 mt-3">
-                        <button class="btn btn-primary btn-sm w-100 fw-bold py-2"><i class="fa-solid fa-floppy-disk me-1"></i> Guardar en Menú</button>
-                    </div>
-                </form>
+                    {% endfor %}
+                </div>
+
+                <!-- Placeholder de selección -->
+                <div id="no-products-dl" class="text-center py-4 text-white-50 small bg-dark rounded border border-secondary mb-3">
+                    <i class="fa-solid fa-hand-pointer me-1 text-warning"></i> Selecciona una categoría de Don Lomito
+                </div>
+
+                <div class="row g-2" id="grid-productos-dl">
+                    {% for p in productos if p.negocio == 'don_lomito' %}
+                        <div class="col-12 col-sm-6 prod-item-card dl-prod-card" data-nombre="{{p.nombre}}" data-categoria="{{p.categoria}}" style="display: none;">
+                            <div class="producto-card dl-item" 
+                                 data-id="{{ p.id }}"
+                                 data-nombre="{{ p.nombre }}"
+                                 data-precio="{{ p.precio_base }}"
+                                 data-negocio="{{ p.negocio }}"
+                                 data-categoria="{{ p.categoria }}"
+                                 onclick="prepararItemFromCard(this)">
+                                <div class="nombre-prod">{{p.nombre}}</div>
+                                <div class="precio-prod">${{p.precio_base}}</div>
+                            </div>
+                            <script id="data-{{p.id}}" type="application/json">
+                                [
+                                    {% for o in p.opciones %}
+                                        {"nombre": {{ o.nombre | tojson }}, "precio": {{ o.precio_extra | tojson }}}{% if not loop.last %},{% endif %}
+                                    {% endfor %}
+                                ]
+                            </script>
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
+
+            <!-- CONTENEDOR MISTUN -->
+            <div id="section-brand-mi" style="display: none;">
+                <div class="categoria-pill-container">
+                    {% for cat in cats_mi %}
+                        <div class="categoria-badge text-white" id="badge-mi-{{cat|replace(' ', '-')}}" onclick="filtrarPorCategoria('mistun', '{{cat}}', this)">
+                            {{cat}}
+                            <form action="/eliminar_categoria" method="POST" class="d-inline" onsubmit="event.stopPropagation(); return confirm('¿Borrar toda la categoría {{cat}}?');">
+                                <input type="hidden" name="negocio" value="mistun">
+                                <input type="hidden" name="categoria" value="{{cat}}">
+                                <button type="submit" class="btn-delete-cat"><i class="fa-solid fa-circle-xmark"></i></button>
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Placeholder de selección -->
+                <div id="no-products-mi" class="text-center py-4 text-white-50 small bg-dark rounded border border-secondary mb-3">
+                    <i class="fa-solid fa-hand-pointer me-1 text-warning"></i> Selecciona una categoría de Mistun
+                </div>
+
+                <div class="row g-2" id="grid-productos-mi">
+                    {% for p in productos if p.negocio == 'mistun' %}
+                        <div class="col-12 col-sm-6 prod-item-card mi-prod-card" data-nombre="{{p.nombre}}" data-categoria="{{p.categoria}}" style="display: none;">
+                            <div class="producto-card mi-item" 
+                                 data-id="{{ p.id }}"
+                                 data-nombre="{{ p.nombre }}"
+                                 data-precio="{{ p.precio_base }}"
+                                 data-negocio="{{ p.negocio }}"
+                                 data-categoria="{{ p.categoria }}"
+                                 onclick="prepararItemFromCard(this)">
+                                <div class="nombre-prod">{{p.nombre}}</div>
+                                <div class="precio-prod">${{p.precio_base}}</div>
+                            </div>
+                            <script id="data-{{p.id}}" type="application/json">
+                                [
+                                    {% for o in p.opciones %}
+                                        {"nombre": {{ o.nombre | tojson }}, "precio": {{ o.precio_extra | tojson }}}{% if not loop.last %},{% endif %}
+                                    {% endfor %}
+                                ]
+                            </script>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
         </div>
 
         <!-- SECCIÓN 2: PREPARACIÓN Y CARRITO (col-md-4) -->
@@ -1190,23 +1187,60 @@ async function checkOrdersSync() {
     }
 }
 
+// --- VARIABLES DE ESTADO DE FILTRADO ---
+let categoriaActivaDl = null;
+let categoriaActivaMi = null;
+
+// --- SELECTOR DE MARCA TABS PARA IPAD ---
+function seleccionarMarca(marca) {
+    const btnDl = document.getElementById('btn-brand-dl');
+    const btnMi = document.getElementById('btn-brand-mi');
+    if (btnDl) btnDl.classList.toggle('active', marca === 'don_lomito');
+    if (btnMi) btnMi.classList.toggle('active', marca === 'mistun');
+    
+    const secDl = document.getElementById('section-brand-dl');
+    const secMi = document.getElementById('section-brand-mi');
+    if (secDl) secDl.style.display = marca === 'don_lomito' ? 'block' : 'none';
+    if (secMi) secMi.style.display = marca === 'mistun' ? 'block' : 'none';
+    
+    const searchInput = document.getElementById('busqueda-producto');
+    if (searchInput) searchInput.value = '';
+    
+    // Ocultar todos los productos
+    document.querySelectorAll('.dl-prod-card').forEach(card => card.style.display = 'none');
+    document.querySelectorAll('.mi-prod-card').forEach(card => card.style.display = 'none');
+    
+    // Desactivar categorías
+    document.querySelectorAll('.categoria-badge').forEach(b => b.classList.remove('active'));
+    categoriaActivaDl = null;
+    categoriaActivaMi = null;
+    
+    // Restablecer placeholders
+    const h_dl = document.getElementById('no-products-dl');
+    const h_mi = document.getElementById('no-products-mi');
+    if (h_dl) h_dl.style.display = marca === 'don_lomito' ? 'block' : 'none';
+    if (h_mi) h_mi.style.display = marca === 'mistun' ? 'block' : 'none';
+}
+
 // --- FILTRADO DINÁMICO POR CATEGORÍA EN FRONTEND ---
 function filtrarPorCategoria(negocio, categoria, elementoBadge) {
-    // 1. Ocultar placeholder helper
+    if (negocio === 'don_lomito') {
+        categoriaActivaDl = categoria;
+    } else {
+        categoriaActivaMi = categoria;
+    }
+
     const helperId = negocio === 'don_lomito' ? 'no-products-dl' : 'no-products-mi';
     const helper = document.getElementById(helperId);
     if (helper) helper.style.display = 'none';
 
-    // 2. Limpiar estilos activos de badges del mismo negocio
     const badgesContainer = elementoBadge.parentNode;
     badgesContainer.querySelectorAll('.categoria-badge').forEach(b => {
         b.classList.remove('active');
     });
 
-    // 3. Activar el badge clickeado
     elementoBadge.classList.add('active');
 
-    // 4. Filtrar y mostrar únicamente los productos seleccionados
     const cardClass = negocio === 'don_lomito' ? '.dl-prod-card' : '.mi-prod-card';
     document.querySelectorAll(cardClass).forEach(card => {
         if (card.dataset.categoria === categoria) {
@@ -1219,23 +1253,48 @@ function filtrarPorCategoria(negocio, categoria, elementoBadge) {
 
 function filtrarProductos() {
     let input = document.getElementById('busqueda-producto').value.toLowerCase();
+    const btnDl = document.getElementById('btn-brand-dl');
+    const activeBrand = (btnDl && btnDl.classList.contains('active')) ? 'don_lomito' : 'mistun';
     
-    // Si la búsqueda no está vacía, mostramos coincidencias globales ocultando placeholders
     if (input.trim() !== "") {
-        const h_dl = document.getElementById('no-products-dl');
-        const h_mi = document.getElementById('no-products-mi');
-        if (h_dl) h_dl.style.display = 'none';
-        if (h_mi) h_mi.style.display = 'none';
+        if (activeBrand === 'don_lomito') {
+            const h_dl = document.getElementById('no-products-dl');
+            if (h_dl) h_dl.style.display = 'none';
+        } else {
+            const h_mi = document.getElementById('no-products-mi');
+            if (h_mi) h_mi.style.display = 'none';
+        }
+    } else {
+        if (activeBrand === 'don_lomito') {
+            const h_dl = document.getElementById('no-products-dl');
+            if (h_dl && !categoriaActivaDl) h_dl.style.display = 'block';
+        } else {
+            const h_mi = document.getElementById('no-products-mi');
+            if (h_mi && !categoriaActivaMi) h_mi.style.display = 'block';
+        }
     }
     
-    let prodCards = document.querySelectorAll('.prod-item-card');
-    prodCards.forEach(card => {
-        let nombre = card.dataset.nombre.toLowerCase();
-        let categoria = card.dataset.categoria.toLowerCase();
-        if (nombre.includes(input) || categoria.includes(input)) {
-            card.style.display = "block";
+    const cardClass = activeBrand === 'don_lomito' ? '.dl-prod-card' : '.mi-prod-card';
+    const otherCardClass = activeBrand === 'don_lomito' ? '.mi-prod-card' : '.dl-prod-card';
+    
+    document.querySelectorAll(otherCardClass).forEach(card => card.style.display = 'none');
+    
+    document.querySelectorAll(cardClass).forEach(card => {
+        if (input.trim() === "") {
+            const activeCat = activeBrand === 'don_lomito' ? categoriaActivaDl : categoriaActivaMi;
+            if (activeCat) {
+                card.style.display = card.dataset.categoria === activeCat ? 'block' : 'none';
+            } else {
+                card.style.display = 'none';
+            }
         } else {
-            card.style.display = "none";
+            let nombre = card.dataset.nombre.toLowerCase();
+            let categoria = card.dataset.categoria.toLowerCase();
+            if (nombre.includes(input) || categoria.includes(input)) {
+                card.style.display = "block";
+            } else {
+                card.style.display = "none";
+            }
         }
     });
 }
@@ -2053,6 +2112,7 @@ function actualizarContadoresFiltros() {
 
 document.addEventListener('DOMContentLoaded', () => {
     actualizarContadoresFiltros();
+    seleccionarMarca('don_lomito');
 });
 </script>
 </body>
