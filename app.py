@@ -54,7 +54,7 @@ class Orden(db.Model):
     listo_at = db.Column(db.DateTime, nullable=True)
 
 # --- CARGA LIGERA Y PORTÁTIL DE MENÚ (Sin dependencia de pandas) ---
-def cargar_menu(csv_filepath='menu_data.csv', excel_filepath='menu_data.xlsx'):
+def cargar_menu(csv_filepath='menu_data.csv'):
     # 1. Intentar cargar desde CSV usando la librería estándar csv (sin dependencias de terceros)
     if os.path.exists(csv_filepath):
         try:
@@ -70,20 +70,20 @@ def cargar_menu(csv_filepath='menu_data.csv', excel_filepath='menu_data.xlsx'):
                         continue
                     
                     try:
-                        precio = float(row.get('precio_base', 0.0))
+                        precio = float(row.get('precio', 0.0))
                     except (ValueError, TypeError):
                         precio = 0.0
                         
-                    negocio = row.get('negocio', 'don_lomito').strip().lower()
+                    negocio = row.get('marca', 'don_lomito').strip().lower()
                     categoria = row.get('categoria', 'General').strip().capitalize()
-                    opciones_str = row.get('opciones', '').strip()
+                    extras_str = row.get('extras', '').strip()
                     
                     nuevo_producto = Producto(nombre=nombre, precio_base=precio, negocio=negocio, categoria=categoria)
                     db.session.add(nuevo_producto)
                     db.session.commit()
                     
-                    if opciones_str:
-                        for opt_part in opciones_str.split(','):
+                    if extras_str:
+                        for opt_part in extras_str.split(','):
                             opt_part = opt_part.strip()
                             if opt_part:
                                 if ':' in opt_part:
@@ -104,74 +104,8 @@ def cargar_menu(csv_filepath='menu_data.csv', excel_filepath='menu_data.xlsx'):
         except Exception as e:
             print(f"ERROR al cargar menú desde CSV: {e}")
             db.session.rollback()
-
-    # 2. Alternativa: Carga directa desde Excel usando openpyxl (dependencia ligera de puro Python)
-    if os.path.exists(excel_filepath):
-        try:
-            import openpyxl
-            wb = openpyxl.load_workbook(excel_filepath, data_only=True)
-            sheet = wb.active
             
-            headers = [cell.value for cell in sheet[1]]
-            col_map = {str(name).strip().lower(): idx for idx, name in enumerate(headers) if name is not None}
-            
-            count = 0
-            for r_idx in range(2, sheet.max_row + 1):
-                row_cells = sheet[r_idx]
-                if len(row_cells) == 0:
-                    continue
-                
-                def get_val(col_name):
-                    idx = col_map.get(col_name)
-                    if idx is not None and idx < len(row_cells):
-                        return row_cells[idx].value
-                    return None
-                
-                nombre = get_val('nombre')
-                if nombre:
-                    nombre = str(nombre).strip()
-                else:
-                    continue
-                
-                try:
-                    precio = float(get_val('precio_base') or 0.0)
-                except (ValueError, TypeError):
-                    precio = 0.0
-                    
-                negocio = str(get_val('negocio') or 'don_lomito').strip().lower()
-                categoria = str(get_val('categoria') or 'General').strip().capitalize()
-                opciones_str = str(get_val('opciones') or '').strip()
-                
-                nuevo_producto = Producto(nombre=nombre, precio_base=precio, negocio=negocio, categoria=categoria)
-                db.session.add(nuevo_producto)
-                db.session.commit()
-                
-                if opciones_str:
-                    for opt_part in opciones_str.split(','):
-                        opt_part = opt_part.strip()
-                        if opt_part:
-                            if ':' in opt_part:
-                                opt_name, opt_price = opt_part.split(':', 1)
-                                try:
-                                    opt_price = float(opt_price.strip())
-                                except ValueError:
-                                    opt_price = 0.0
-                            else:
-                                opt_name = opt_part
-                                opt_price = 0.0
-                            nueva_opcion = Opcion(nombre=opt_name.strip(), precio_extra=opt_price, producto_id=nuevo_producto.id)
-                            db.session.add(nueva_opcion)
-                    db.session.commit()
-                count += 1
-            print(f"Menú cargado exitosamente desde Excel {excel_filepath} ({count} productos).")
-            return
-        except ImportError:
-            print("ADVERTENCIA: openpyxl no está instalado. Instálalo con 'pip install openpyxl' o proporciona 'menu_data.csv'.")
-        except Exception as e:
-            print(f"ERROR al cargar menú desde Excel: {e}")
-            db.session.rollback()
-            
-    print("ADVERTENCIA: No se encontró 'menu_data.csv' ni 'menu_data.xlsx'. No se cargó menú inicial.")
+    print("ADVERTENCIA: No se encontró 'menu_data.csv'. No se cargó menú inicial.")
 
 # Se crea la base de datos y se carga el menú si está vacía
 with app.app_context():
@@ -219,21 +153,17 @@ with app.app_context():
         db.session.rollback()
 
     # Verificación de productos y carga de menú
-    xlsx_exists = os.path.exists('menu_data.xlsx')
+    csv_exists = os.path.exists('menu_data.csv')
     productos_count = Producto.query.count()
 
-    if not xlsx_exists:
-        # En caso de no encontrar un archivo .xlsx de menú, se cargan los productos desde la base de datos SQLite
-        if productos_count == 0:
-            print("Base de datos cargada correctamente")
-        else:
-            print("Base de datos cargada correctamente")
-    else:
-        # Si el archivo xlsx existe
-        if productos_count == 0:
+    if productos_count == 0:
+        if csv_exists:
             print("Base de datos de productos vacía, cargando menú...")
-            cargar_menu('menu_data.csv', 'menu_data.xlsx')
-        print("Base de datos cargada correctamente")
+            cargar_menu('menu_data.csv')
+        else:
+            print("Base de datos de productos vacía y no se encontró menu_data.csv.")
+    
+    print("Base de datos cargada correctamente")
 
 
 # --- RUTAS PRINCIPALES (POS) ---
