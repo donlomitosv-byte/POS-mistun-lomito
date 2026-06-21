@@ -70,20 +70,20 @@ def cargar_menu(csv_filepath='menu_data.csv'):
                         continue
                     
                     try:
-                        precio = float(row.get('precio', 0.0))
+                        precio = float(row.get('precio_base', 0.0))
                     except (ValueError, TypeError):
                         precio = 0.0
                         
-                    negocio = row.get('marca', 'don_lomito').strip().lower()
+                    negocio = row.get('negocio', 'don_lomito').strip().lower()
                     categoria = row.get('categoria', 'General').strip().capitalize()
-                    extras_str = row.get('extras', '').strip()
+                    opciones_str = row.get('opciones', '').strip()
                     
                     nuevo_producto = Producto(nombre=nombre, precio_base=precio, negocio=negocio, categoria=categoria)
                     db.session.add(nuevo_producto)
                     db.session.commit()
                     
-                    if extras_str:
-                        for opt_part in extras_str.split(','):
+                    if opciones_str:
+                        for opt_part in opciones_str.split(','):
                             opt_part = opt_part.strip()
                             if opt_part:
                                 if ':' in opt_part:
