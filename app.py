@@ -4,11 +4,11 @@ from datetime import datetime, date, timedelta
 import json
 import os
 
-app = Flask(__name__)
+app = Flask(__name__, instance_path=os.path.dirname(os.path.abspath(__file__)))
 
 # --- CONFIGURACIÓN PORTÁTIL (MULTI-ENTORNO) ---
 LIGHTWEIGHT_MODE = os.environ.get('LIGHTWEIGHT_MODE', 'True').lower() == 'true'
-DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///restaurante_con_nombres.db')
+DATABASE_URI = 'sqlite:///instance/restaurante_con_nombres.db'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -199,9 +199,22 @@ with app.app_context():
     except Exception:
         db.session.rollback()
 
-    if Producto.query.count() == 0:
-        print("Base de datos de productos vacía, cargando menú...")
-        cargar_menu('menu_data.csv', 'menu_data.xlsx')
+    # Verificación de productos y carga de menú
+    xlsx_exists = os.path.exists('menu_data.xlsx')
+    productos_count = Producto.query.count()
+
+    if not xlsx_exists:
+        # En caso de no encontrar un archivo .xlsx de menú, se cargan los productos desde la base de datos SQLite
+        if productos_count == 0:
+            print("Base de datos cargada correctamente")
+        else:
+            print("Base de datos cargada correctamente")
+    else:
+        # Si el archivo xlsx existe
+        if productos_count == 0:
+            print("Base de datos de productos vacía, cargando menú...")
+            cargar_menu('menu_data.csv', 'menu_data.xlsx')
+        print("Base de datos cargada correctamente")
 
 
 # --- RUTAS PRINCIPALES (POS) ---
