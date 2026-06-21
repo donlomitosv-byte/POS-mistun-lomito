@@ -244,6 +244,61 @@
             border: 2px solid var(--danger-color) !important;
             animation: subtle-flash 1s infinite alternate;
         }
+
+        /* MEDIA QUERIES PARA PANTALLAS PEQUEÑAS / TV (FIRE TV STICK) */
+        @media (max-width: 1024px) {
+            .kds-navbar {
+                padding: 8px 16px;
+            }
+            .kds-title {
+                font-size: 1.2rem;
+            }
+            .brand-badge {
+                font-size: 0.8rem;
+                padding: 4px 10px;
+            }
+            .container-fluid.py-4.px-4 {
+                padding: 12px !important;
+            }
+            .order-card {
+                min-height: auto;
+                margin-bottom: 16px;
+            }
+            .order-header {
+                padding: 10px 12px;
+            }
+            .order-header h4 {
+                font-size: 1.2rem !important;
+                margin-bottom: 4px !important;
+            }
+            .order-body {
+                padding: 10px 12px;
+            }
+            .order-footer {
+                padding: 10px 12px;
+            }
+            .item-list li {
+                padding: 6px 0;
+            }
+            .item-qty {
+                font-size: 1.05rem;
+            }
+            .item-name {
+                font-size: 1.05rem;
+            }
+            .item-mods {
+                font-size: 0.75rem;
+                padding-left: 20px;
+            }
+            .timer-badge {
+                font-size: 1rem;
+                padding: 3px 8px;
+            }
+            .btn-kds-action {
+                padding: 10px;
+                font-size: 0.8rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -562,7 +617,7 @@
             }
 
             const orderCard = `
-                <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                <div class="col-12 col-sm-6 col-md-4 col-xl-3">
                     <div class="order-card p-0 ${cardColorClass}">
                         <div class="order-header">
                             <div class="d-flex justify-content-between align-items-center mb-2">

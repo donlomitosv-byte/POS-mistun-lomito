@@ -524,6 +524,87 @@
         .scrollbar-slim::-webkit-scrollbar-track { background: transparent; }
         .scrollbar-slim::-webkit-scrollbar-thumb { background: #232738; border-radius: 10px; }
         .scrollbar-slim::-webkit-scrollbar-thumb:hover { background: #31374f; }
+
+        .brand-col-mistun {
+            border-left: 2px solid var(--border-color);
+            padding-left: 24px;
+        }
+
+        /* MEDIA QUERIES PARA PANTALLAS PEQUEÑAS / TV (FIRE TV STICK) */
+        @media (max-width: 1200px) {
+            .brand-col-mistun {
+                border-left: none;
+                border-top: 2px solid var(--border-color);
+                padding-top: 20px;
+                padding-left: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .pos-header {
+                padding: 8px 12px;
+                margin-bottom: 10px;
+            }
+            .brand-logo h1 {
+                font-size: 1.25rem;
+            }
+            .brand-logo i {
+                font-size: 1.25rem;
+            }
+            .pos-header .d-flex.align-items-center.gap-2 {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+            .pos-header .btn {
+                font-size: 0.75rem;
+                padding: 4px 10px;
+            }
+            .container-fluid.px-4.py-1 {
+                padding-left: 8px !important;
+                padding-right: 8px !important;
+            }
+            .brand-section-title {
+                font-size: 1.1rem;
+                margin: 12px 0 8px 0;
+            }
+            .categoria-pill-container {
+                gap: 4px;
+                margin-bottom: 12px;
+            }
+            .categoria-badge {
+                padding: 8px 14px; /* Mayor padding vertical para facilitar el tap */
+                font-size: 0.75rem;
+            }
+            .producto-card {
+                padding: 12px;
+                min-height: 90px;
+            }
+            .producto-card .nombre-prod {
+                font-size: 0.95rem;
+                margin-bottom: 4px;
+            }
+            .producto-card .precio-prod {
+                font-size: 1.05rem;
+            }
+            .btn-qty {
+                width: 38px; /* Aumentado a un área de toque más grande */
+                height: 38px;
+                font-size: 1.1rem;
+            }
+            .service-type-btn {
+                padding: 12px;
+                font-size: 0.8rem;
+            }
+            .cart-header {
+                padding: 12px 16px;
+            }
+            .cart-body {
+                padding: 16px;
+            }
+            .add-product-panel {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -591,7 +672,7 @@
 
                     <div class="row g-2" id="grid-productos-dl">
                         {% for p in productos if p.negocio == 'don_lomito' %}
-                            <div class="col-6 prod-item-card dl-prod-card" data-nombre="{{p.nombre}}" data-categoria="{{p.categoria}}" style="display: none;">
+                            <div class="col-12 col-sm-6 prod-item-card dl-prod-card" data-nombre="{{p.nombre}}" data-categoria="{{p.categoria}}" style="display: none;">
                                 <div class="producto-card dl-item" 
                                      data-id="{{ p.id }}"
                                      data-nombre="{{ p.nombre }}"
@@ -619,7 +700,7 @@
                 </div>
 
                 <!-- MISTUN (CAFÉ & REPOSTERÍA) -->
-                <div class="col-12 col-xl-6 mb-4 border-start border-2 border-secondary">
+                <div class="col-12 col-xl-6 mb-4 brand-col-mistun">
                     <h4 class="brand-section-title mi-title">
                         <i class="fa-solid fa-cookie"></i> Mistun Cafe
                     </h4>
@@ -643,7 +724,7 @@
 
                     <div class="row g-2" id="grid-productos-mi">
                         {% for p in productos if p.negocio == 'mistun' %}
-                            <div class="col-6 prod-item-card mi-prod-card" data-nombre="{{p.nombre}}" data-categoria="{{p.categoria}}" style="display: none;">
+                            <div class="col-12 col-sm-6 prod-item-card mi-prod-card" data-nombre="{{p.nombre}}" data-categoria="{{p.categoria}}" style="display: none;">
                                 <div class="producto-card mi-item" 
                                      data-id="{{ p.id }}"
                                      data-nombre="{{ p.nombre }}"
