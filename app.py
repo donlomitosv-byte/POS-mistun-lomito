@@ -76,14 +76,14 @@ def cargar_menu(csv_filepath='menu_data.csv'):
                         
                     negocio = row.get('negocio', 'don_lomito').strip().lower()
                     categoria = row.get('categoria', 'General').strip().capitalize()
-                    opciones_str = row.get('opciones', '').strip()
+                    extras_str = row.get('opciones', '')
                     
                     nuevo_producto = Producto(nombre=nombre, precio_base=precio, negocio=negocio, categoria=categoria)
                     db.session.add(nuevo_producto)
                     db.session.commit()
                     
-                    if opciones_str:
-                        for opt_part in opciones_str.split(','):
+                    if extras_str:
+                        for opt_part in extras_str.split(','):
                             opt_part = opt_part.strip()
                             if opt_part:
                                 if ':' in opt_part:
