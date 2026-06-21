@@ -2,12 +2,23 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date, timedelta
 import json
-import pandas as pd 
+import os
 
 app = Flask(__name__)
-# CAMBIO: Usaremos una nueva DB para una estructura limpia con el nuevo ticket_id
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///restaurante_con_nombres.db' 
+
+# --- CONFIGURACIÓN PORTÁTIL (MULTI-ENTORNO) ---
+LIGHTWEIGHT_MODE = os.environ.get('LIGHTWEIGHT_MODE', 'True').lower() == 'true'
+DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///restaurante_con_nombres.db')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+if LIGHTWEIGHT_MODE:
+    print(">>> SISTEMA INICIADO EN MODO LIGERO (Optimizado para ARM/Fire TV Stick) <<<")
+else:
+    print(">>> SISTEMA INICIADO EN MODO DE ALTO RENDIMIENTO <<<")
+    app.config['SQLALCHEMY_ECHO'] = True
+
 db = SQLAlchemy(app)
 
 # --- MODELOS ---
@@ -41,46 +52,125 @@ class Orden(db.Model):
     preparacion_at = db.Column(db.DateTime, nullable=True)
     listo_at = db.Column(db.DateTime, nullable=True)
 
-# --- FUNCIÓN PARA CARGAR MENÚ DESDE EXCEL (sin cambios) ---
-def cargar_menu_desde_excel(filepath='menu_data.xlsx'):
-    try:
-        df = pd.read_excel(filepath, engine='openpyxl')
-        for index, row in df.iterrows():
-            nombre = str(row['nombre']).strip() if pd.notna(row['nombre']) else None
-            precio = float(row['precio_base']) if pd.notna(row['precio_base']) else 0.0
-            negocio = str(row['negocio']).strip().lower() if pd.notna(row['negocio']) else 'don_lomito'
-            categoria = str(row['categoria']).strip().capitalize() if pd.notna(row['categoria']) else 'General'
-            opciones_str = str(row['opciones']).strip() if pd.notna(row['opciones']) else ''
+# --- CARGA LIGERA Y PORTÁTIL DE MENÚ (Sin dependencia de pandas) ---
+def cargar_menu(csv_filepath='menu_data.csv', excel_filepath='menu_data.xlsx'):
+    # 1. Intentar cargar desde CSV usando la librería estándar csv (sin dependencias de terceros)
+    if os.path.exists(csv_filepath):
+        try:
+            import csv
+            with open(csv_filepath, mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                count = 0
+                for row in reader:
+                    nombre = row.get('nombre')
+                    if nombre:
+                        nombre = nombre.strip()
+                    else:
+                        continue
+                    
+                    try:
+                        precio = float(row.get('precio_base', 0.0))
+                    except (ValueError, TypeError):
+                        precio = 0.0
+                        
+                    negocio = row.get('negocio', 'don_lomito').strip().lower()
+                    categoria = row.get('categoria', 'General').strip().capitalize()
+                    opciones_str = row.get('opciones', '').strip()
+                    
+                    nuevo_producto = Producto(nombre=nombre, precio_base=precio, negocio=negocio, categoria=categoria)
+                    db.session.add(nuevo_producto)
+                    db.session.commit()
+                    
+                    if opciones_str:
+                        for opt_part in opciones_str.split(','):
+                            opt_part = opt_part.strip()
+                            if opt_part:
+                                if ':' in opt_part:
+                                    opt_name, opt_price = opt_part.split(':', 1)
+                                    try:
+                                        opt_price = float(opt_price.strip())
+                                    except ValueError:
+                                        opt_price = 0.0
+                                else:
+                                    opt_name = opt_part
+                                    opt_price = 0.0
+                                nueva_opcion = Opcion(nombre=opt_name.strip(), precio_extra=opt_price, producto_id=nuevo_producto.id)
+                                db.session.add(nueva_opcion)
+                        db.session.commit()
+                    count += 1
+                print(f"Menú cargado exitosamente desde CSV {csv_filepath} ({count} productos).")
+                return
+        except Exception as e:
+            print(f"ERROR al cargar menú desde CSV: {e}")
+            db.session.rollback()
 
-            if not nombre: continue
-
-            nuevo_producto = Producto(nombre=nombre, precio_base=precio, negocio=negocio, categoria=categoria)
-            db.session.add(nuevo_producto)
-            db.session.commit()
-
-            if opciones_str:
-                for opt_part in opciones_str.split(','):
-                    opt_part = opt_part.strip()
-                    if opt_part:
-                        if ':' in opt_part:
-                            opt_name, opt_price = opt_part.split(':', 1)
-                            try:
-                                opt_price = float(opt_price.strip())
-                            except ValueError:
+    # 2. Alternativa: Carga directa desde Excel usando openpyxl (dependencia ligera de puro Python)
+    if os.path.exists(excel_filepath):
+        try:
+            import openpyxl
+            wb = openpyxl.load_workbook(excel_filepath, data_only=True)
+            sheet = wb.active
+            
+            headers = [cell.value for cell in sheet[1]]
+            col_map = {str(name).strip().lower(): idx for idx, name in enumerate(headers) if name is not None}
+            
+            count = 0
+            for r_idx in range(2, sheet.max_row + 1):
+                row_cells = sheet[r_idx]
+                if len(row_cells) == 0:
+                    continue
+                
+                def get_val(col_name):
+                    idx = col_map.get(col_name)
+                    if idx is not None and idx < len(row_cells):
+                        return row_cells[idx].value
+                    return None
+                
+                nombre = get_val('nombre')
+                if nombre:
+                    nombre = str(nombre).strip()
+                else:
+                    continue
+                
+                try:
+                    precio = float(get_val('precio_base') or 0.0)
+                except (ValueError, TypeError):
+                    precio = 0.0
+                    
+                negocio = str(get_val('negocio') or 'don_lomito').strip().lower()
+                categoria = str(get_val('categoria') or 'General').strip().capitalize()
+                opciones_str = str(get_val('opciones') or '').strip()
+                
+                nuevo_producto = Producto(nombre=nombre, precio_base=precio, negocio=negocio, categoria=categoria)
+                db.session.add(nuevo_producto)
+                db.session.commit()
+                
+                if opciones_str:
+                    for opt_part in opciones_str.split(','):
+                        opt_part = opt_part.strip()
+                        if opt_part:
+                            if ':' in opt_part:
+                                opt_name, opt_price = opt_part.split(':', 1)
+                                try:
+                                    opt_price = float(opt_price.strip())
+                                except ValueError:
+                                    opt_price = 0.0
+                            else:
+                                opt_name = opt_part
                                 opt_price = 0.0
-                        else:
-                            opt_name = opt_part
-                            opt_price = 0.0
-                        nueva_opcion = Opcion(nombre=opt_name.strip(), precio_extra=opt_price, producto_id=nuevo_producto.id)
-                        db.session.add(nueva_opcion)
-            db.session.commit()
-        print(f"Menú cargado exitosamente desde {filepath} (total {len(df)} productos).")
-    except FileNotFoundError:
-        print(f"ADVERTENCIA: El archivo '{filepath}' no se encontró. No se cargó menú inicial.")
-    except KeyError as e:
-        print(f"ERROR: Columna '{e}' no encontrada en el archivo Excel. Asegúrate de que las columnas sean 'nombre', 'precio_base', 'negocio', 'categoria', 'opciones'.")
-    except Exception as e:
-        print(f"ERROR inesperado al cargar menú desde Excel: {e}")
+                            nueva_opcion = Opcion(nombre=opt_name.strip(), precio_extra=opt_price, producto_id=nuevo_producto.id)
+                            db.session.add(nueva_opcion)
+                    db.session.commit()
+                count += 1
+            print(f"Menú cargado exitosamente desde Excel {excel_filepath} ({count} productos).")
+            return
+        except ImportError:
+            print("ADVERTENCIA: openpyxl no está instalado. Instálalo con 'pip install openpyxl' o proporciona 'menu_data.csv'.")
+        except Exception as e:
+            print(f"ERROR al cargar menú desde Excel: {e}")
+            db.session.rollback()
+            
+    print("ADVERTENCIA: No se encontró 'menu_data.csv' ni 'menu_data.xlsx'. No se cargó menú inicial.")
 
 # Se crea la base de datos y se carga el menú si está vacía
 with app.app_context():
@@ -110,8 +200,8 @@ with app.app_context():
         db.session.rollback()
 
     if Producto.query.count() == 0:
-        print("Base de datos de productos vacía, cargando desde Excel...")
-        cargar_menu_desde_excel('menu_data.xlsx')
+        print("Base de datos de productos vacía, cargando menú...")
+        cargar_menu('menu_data.csv', 'menu_data.xlsx')
 
 
 # --- RUTAS PRINCIPALES (POS) ---
