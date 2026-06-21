@@ -539,7 +539,7 @@
                     `;
                     break;
                 case 'Lista_Para_Servir':
-                    nextStatusBtnHtml = `<button class="btn btn-secondary w-100 py-3 btn-kds-action" disabled><i class="fa-solid fa-spinner fa-spin me-1"></i> Esperando Entrega</button>`; 
+                    nextStatusBtnHtml = `<button class="btn btn-kds-action btn-success w-100 py-3" onclick="updateOrderStatus(${order.id}, 'Entregado')"><i class="fa-solid fa-hand-holding-hand me-1"></i> Entregar Pedido</button>`; 
                     timerHtml = `<div class="timer-badge ${timeColorClass}"><i class="fa-solid fa-stopwatch-20"></i> <span class="active-timer" data-estado="Lista_Para_Servir" data-start="${order.listo_at || order.fecha_creacion}">${formatTime(getSecondsElapsed(order.listo_at || order.fecha_creacion))}</span></div>`;
                     
                     // Calcular cola e hitos de preparación

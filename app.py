@@ -43,7 +43,8 @@ class Orden(db.Model):
     tipo_servicio = db.Column(db.String(20))
     items_json = db.Column(db.Text)
     total = db.Column(db.Float)
-    estado = db.Column(db.String(30), default='Abierta') # Abierta, Enviada_Cocina, Preparando, Lista_Para_Servir, Pagada, Cancelada, Reemplazada
+    estado = db.Column(db.String(30), default='Abierta') # Abierta, Enviada_Cocina, Preparando, Lista_Para_Servir, Entregado, Cancelada, Reemplazada
+    estado_pago = db.Column(db.String(20), default='Pendiente') # Pendiente, Pagada
     metodo_pago = db.Column(db.String(20))
     referencia = db.Column(db.String(100), nullable=True) # Campo para número de voucher / transferencia
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
@@ -199,6 +200,24 @@ with app.app_context():
     except Exception:
         db.session.rollback()
 
+    # Migración automática: añadir columna estado_pago si no existe
+    try:
+        db.session.execute(db.text("ALTER TABLE orden ADD COLUMN estado_pago VARCHAR(20) DEFAULT 'Pendiente'"))
+        db.session.commit()
+        print("Migración: Columna 'estado_pago' agregada a la tabla 'orden'.")
+    except Exception:
+        db.session.rollback()
+
+    # Actualizar estado_pago histórico: si estado es 'Pagada', set estado_pago = 'Pagada' y estado = 'Entregado'
+    try:
+        db.session.execute(db.text("UPDATE orden SET estado_pago = 'Pagada', estado = 'Entregado' WHERE estado = 'Pagada'"))
+        db.session.commit()
+        # Asegurar que cualquier registro nulo de estado_pago sea 'Pendiente'
+        db.session.execute(db.text("UPDATE orden SET estado_pago = 'Pendiente' WHERE estado_pago IS NULL"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
     # Verificación de productos y carga de menú
     xlsx_exists = os.path.exists('menu_data.xlsx')
     productos_count = Producto.query.count()
@@ -223,8 +242,10 @@ def index():
     productos = Producto.query.all()
     cats_dl = db.session.query(Producto.categoria).filter(Producto.negocio=='don_lomito').distinct().all()
     cats_mi = db.session.query(Producto.categoria).filter(Producto.negocio=='mistun').distinct().all()
-    ordenes = Orden.query.filter(Orden.estado.notin_(['Pagada', 'Reemplazada', 'Cancelada'])) \
-                        .order_by(Orden.ticket_id.desc(), Orden.negocio.desc()).all()
+    ordenes = Orden.query.filter(
+        Orden.estado_pago != 'Pagada',
+        Orden.estado.notin_(['Cancelada', 'Reemplazada'])
+    ).order_by(Orden.ticket_id.desc(), Orden.negocio.desc()).all()
     return render_template('index.html', productos=productos, ordenes=ordenes, 
                            cats_dl=[c[0] for c in cats_dl], cats_mi=[c[0] for c in cats_mi])
 
@@ -332,7 +353,7 @@ def cierre_caja():
         fecha_inicio = datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0)
 
     ordenes_query = Orden.query.filter(
-        Orden.estado == 'Pagada', 
+        Orden.estado_pago == 'Pagada', 
         Orden.fecha_creacion >= fecha_inicio
     ).order_by(Orden.fecha_creacion.desc()).all()
     
@@ -385,11 +406,12 @@ def finalizar_pago():
         # Cobrar todas las órdenes activas asociadas a la mesa/ticket
         ordenes = Orden.query.filter(
             Orden.ticket_id == ticket_id,
-            Orden.estado.notin_(['Pagada', 'Reemplazada', 'Cancelada'])
+            Orden.estado_pago != 'Pagada',
+            Orden.estado.notin_(['Cancelada', 'Reemplazada'])
         ).all()
         if len(ordenes) == 1:
             orden = ordenes[0]
-            orden.estado = 'Pagada'
+            orden.estado_pago = 'Pagada'
             orden.metodo_pago = metodo
             orden.referencia = referencia
             db.session.commit()
@@ -403,13 +425,24 @@ def finalizar_pago():
                 items_unificados.extend(items_o)
                 total_unificado += o.total
             
+            # Encontrar el estado de producción más avanzado para el ticket unificado
+            estados_prioridad = {'Entregado': 4, 'Lista_Para_Servir': 3, 'Preparando': 2, 'Enviada_Cocina': 1, 'Abierta': 0}
+            best_state = 'Enviada_Cocina'
+            best_priority = -1
+            for o in ordenes:
+                prio = estados_prioridad.get(o.estado, 0)
+                if prio > best_priority:
+                    best_priority = prio
+                    best_state = o.estado
+
             nueva_unificada = Orden(
                 ticket_id=ticket_id,
                 negocio='unificado',
                 tipo_servicio=tipo_servicio,
                 items_json=json.dumps(items_unificados),
                 total=total_unificado,
-                estado='Pagada',
+                estado=best_state,
+                estado_pago='Pagada',
                 metodo_pago=metodo,
                 referencia=referencia,
                 fecha_creacion=ordenes[0].fecha_creacion,
@@ -427,7 +460,7 @@ def finalizar_pago():
         # Cobrar orden de marca individual
         orden = Orden.query.get(orden_id)
         if orden:
-            orden.estado = 'Pagada'
+            orden.estado_pago = 'Pagada'
             orden.metodo_pago = metodo
             orden.referencia = referencia
             db.session.commit()
@@ -437,7 +470,10 @@ def finalizar_pago():
 
 @app.route('/api/active_orders_status')
 def active_orders_status():
-    ordenes = Orden.query.filter(Orden.estado.notin_(['Pagada', 'Reemplazada', 'Cancelada'])).all()
+    ordenes = Orden.query.filter(
+        Orden.estado_pago != 'Pagada',
+        Orden.estado.notin_(['Cancelada', 'Reemplazada'])
+    ).all()
     state = {o.id: o.estado for o in ordenes}
     return jsonify(state)
 
@@ -450,7 +486,7 @@ def kds_screen(negocio):
 def api_kds_orders(negocio):
     orders = Orden.query.filter(
         Orden.negocio == negocio,
-        Orden.estado.notin_(['Pagada', 'Reemplazada', 'Cancelada'])
+        Orden.estado.notin_(['Entregado', 'Cancelada', 'Reemplazada'])
     ).order_by(Orden.fecha_creacion).all()
     
     output = []

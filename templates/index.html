@@ -858,6 +858,16 @@
                 <span class="badge bg-secondary rounded-pill">{{ ordenes|length }}</span>
             </h5>
             
+            <!-- FILTROS DE CUENTAS ACTIVAS -->
+            <div class="btn-group btn-group-sm w-100 mb-3" role="group">
+                <button type="button" class="btn btn-outline-secondary active fw-bold" id="btn-filter-all" onclick="filtrarCuentas('all')">
+                    Todas (<span id="count-all-tickets">0</span>)
+                </button>
+                <button type="button" class="btn btn-outline-warning fw-bold" id="btn-filter-pending-pay" onclick="filtrarCuentas('pending-pay')">
+                    Entregadas (<span id="count-pending-pay-tickets">0</span>)
+                </button>
+            </div>
+            
             <div class="scrollbar-slim" style="max-height: 70vh;">
                 {% for ticket_id, group_ordenes in ordenes | groupby('ticket_id') %}
                     <div class="ticket-group mb-3">
@@ -869,7 +879,7 @@
                         {% set grand_total = namespace(value=0.0) %}
                         {% for o in group_ordenes %}
                             {% set grand_total.value = grand_total.value + o.total %}
-                            <div class="ticket-card {{ 'dl-border' if o.negocio == 'don_lomito' else 'mi-border' }} mb-2">
+                            <div class="ticket-card {{ 'dl-border' if o.negocio == 'don_lomito' else 'mi-border' }} mb-2" data-estado="{{ o.estado }}">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
                                         <span class="badge bg-dark small">#{{ o.id }}</span>
@@ -877,9 +887,15 @@
                                             {{ o.negocio.replace('don_', '') }}
                                         </span>
                                     </div>
-                                    <span class="badge bg-warning text-dark text-uppercase small fw-bold">
-                                        {{ o.estado.replace('_Cocina', '').replace('_', ' ') }}
-                                    </span>
+                                    {% if o.estado == 'Entregado' %}
+                                        <span class="badge bg-success text-white text-uppercase small fw-bold">
+                                            <i class="fa-solid fa-circle-check me-1"></i> Entregado
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark text-uppercase small fw-bold">
+                                            {{ o.estado.replace('_Cocina', '').replace('_', ' ') }}
+                                        </span>
+                                    {% endif %}
                                 </div>
                                 
                                 <script id="items-data-{{ o.id }}" type="application/json">{{ o.items_json | safe }}</script>
@@ -1875,6 +1891,47 @@ function procesarPago() {
         body: JSON.stringify(payload)
     }).then(() => location.reload());
 }
+
+function filtrarCuentas(type) {
+    document.getElementById('btn-filter-all').classList.toggle('active', type === 'all');
+    document.getElementById('btn-filter-pending-pay').classList.toggle('active', type === 'pending-pay');
+    
+    const groups = document.querySelectorAll('.ticket-group');
+    groups.forEach(group => {
+        if (type === 'all') {
+            group.style.display = '';
+        } else if (type === 'pending-pay') {
+            const hasEntregado = group.querySelector('.ticket-card[data-estado="Entregado"]') !== null;
+            if (hasEntregado) {
+                group.style.display = '';
+            } else {
+                group.style.display = 'none';
+            }
+        }
+    });
+}
+
+function actualizarContadoresFiltros() {
+    const groups = document.querySelectorAll('.ticket-group');
+    let countAll = groups.length;
+    let countPending = 0;
+    
+    groups.forEach(group => {
+        const hasEntregado = group.querySelector('.ticket-card[data-estado="Entregado"]') !== null;
+        if (hasEntregado) {
+            countPending++;
+        }
+    });
+    
+    const allEl = document.getElementById('count-all-tickets');
+    const pendingEl = document.getElementById('count-pending-pay-tickets');
+    if (allEl) allEl.innerText = countAll;
+    if (pendingEl) pendingEl.innerText = countPending;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    actualizarContadoresFiltros();
+});
 </script>
 </body>
 </html>
