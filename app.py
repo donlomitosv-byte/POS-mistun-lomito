@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import or_, and_
 from datetime import datetime, date, timedelta
 import json
 import os
@@ -52,6 +53,7 @@ class Orden(db.Model):
     creado_at = db.Column(db.DateTime, default=datetime.utcnow)
     preparacion_at = db.Column(db.DateTime, nullable=True)
     listo_at = db.Column(db.DateTime, nullable=True)
+    estado_entrega = db.Column(db.String(30), default='Preparando') # Preparando, Listo, Entregado, Retirado
 
 # --- CARGA LIGERA Y PORTÁTIL DE MENÚ (Sin dependencia de pandas) ---
 def cargar_menu(csv_filepath='menu_data.csv'):
@@ -152,6 +154,24 @@ with app.app_context():
     except Exception:
         db.session.rollback()
 
+    # Migración automática: añadir columna estado_entrega si no existe
+    try:
+        db.session.execute(db.text("ALTER TABLE orden ADD COLUMN estado_entrega VARCHAR(30) DEFAULT 'Preparando'"))
+        db.session.commit()
+        print("Migración: Columna 'estado_entrega' agregada a la tabla 'orden'.")
+    except Exception:
+        db.session.rollback()
+
+    # Actualizar estado_entrega histórico: si estado_pago es 'Pagada', set estado_entrega = 'Entregado'
+    try:
+        db.session.execute(db.text("UPDATE orden SET estado_entrega = 'Entregado' WHERE estado_pago = 'Pagada' OR estado = 'Entregado'"))
+        db.session.commit()
+        # Asegurar que cualquier registro nulo de estado_entrega sea 'Preparando'
+        db.session.execute(db.text("UPDATE orden SET estado_entrega = 'Preparando' WHERE estado_entrega IS NULL"))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+
     # Verificación de productos y carga de menú
     csv_exists = os.path.exists('menu_data.csv')
     productos_count = Producto.query.count()
@@ -173,7 +193,13 @@ def index():
     cats_dl = db.session.query(Producto.categoria).filter(Producto.negocio=='don_lomito').distinct().all()
     cats_mi = db.session.query(Producto.categoria).filter(Producto.negocio=='mistun').distinct().all()
     ordenes = Orden.query.filter(
-        Orden.estado_pago != 'Pagada',
+        or_(
+            Orden.estado_pago != 'Pagada',
+            and_(
+                Orden.estado_pago == 'Pagada',
+                Orden.estado_entrega.notin_(['Retirado', 'Entregado'])
+            )
+        ),
         Orden.estado.notin_(['Cancelada', 'Reemplazada'])
     ).order_by(Orden.ticket_id.desc(), Orden.negocio.desc()).all()
     return render_template('index.html', productos=productos, ordenes=ordenes, 
@@ -291,12 +317,22 @@ def admin_cerrar_caja():
     total_ventas = sum(o.total for o in ordenes_completadas)
     
     ordenes_activas = Orden.query.filter(
-        Orden.estado_pago != 'Pagada',
+        or_(
+            Orden.estado_pago != 'Pagada',
+            and_(
+                Orden.estado_pago == 'Pagada',
+                Orden.estado_entrega.notin_(['Retirado', 'Entregado'])
+            )
+        ),
         Orden.estado.notin_(['Cancelada', 'Reemplazada'])
     ).all()
     
     for o in ordenes_activas:
         o.estado_pago = 'Pagada'
+        if o.tipo_servicio == 'Comer aquí':
+            o.estado_entrega = 'Retirado'
+        else:
+            o.estado_entrega = 'Entregado'
         if o.estado != 'Entregado':
             o.estado = 'Entregado'
             
@@ -435,10 +471,46 @@ def finalizar_pago():
             
     return jsonify({"status": "error", "message": "Parámetros de cobro insuficientes"}), 400
 
+@app.route('/archivar_orden', methods=['POST'])
+def archivar_orden():
+    data = request.json
+    ticket_id = data.get('ticket_id')
+    orden_id = data.get('id')
+    
+    if ticket_id:
+        ordenes = Orden.query.filter_by(ticket_id=ticket_id).all()
+        for o in ordenes:
+            if o.tipo_servicio == 'Comer aquí':
+                o.estado_entrega = 'Retirado'
+            else:
+                o.estado_entrega = 'Entregado'
+            if o.estado != 'Entregado':
+                o.estado = 'Entregado'
+        db.session.commit()
+        return jsonify({"status": "success", "scope": "ticket"})
+    elif orden_id:
+        o = Orden.query.get(orden_id)
+        if o:
+            if o.tipo_servicio == 'Comer aquí':
+                o.estado_entrega = 'Retirado'
+            else:
+                o.estado_entrega = 'Entregado'
+            if o.estado != 'Entregado':
+                o.estado = 'Entregado'
+            db.session.commit()
+            return jsonify({"status": "success", "scope": "individual"})
+    return jsonify({"status": "error", "message": "Parámetros insuficientes"}), 400
+
 @app.route('/api/active_orders_status')
 def active_orders_status():
     ordenes = Orden.query.filter(
-        Orden.estado_pago != 'Pagada',
+        or_(
+            Orden.estado_pago != 'Pagada',
+            and_(
+                Orden.estado_pago == 'Pagada',
+                Orden.estado_entrega.notin_(['Retirado', 'Entregado'])
+            )
+        ),
         Orden.estado.notin_(['Cancelada', 'Reemplazada'])
     ).all()
     state = {o.id: o.estado for o in ordenes}

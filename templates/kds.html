@@ -15,11 +15,11 @@
     
     <style>
         :root {
-            --bg-kds: #0b0f19;
-            --card-kds: #161f30;
-            --text-kds: #f8fafc;
-            --border-kds: #24324d;
-            --text-muted: #e2e8f0;
+            --bg-kds: #f1f5f9;
+            --card-kds: #ffffff;
+            --text-kds: #0f172a;
+            --border-kds: #e2e8f0;
+            --text-muted: #475569;
             --success-color: #10b981;
             --warning-color: #f59e0b;
             --danger-color: #ef4444;
@@ -27,7 +27,8 @@
             
             --radius-lg: 16px;
             --radius-md: 12px;
-            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            --radius-sm: 8px;
+            --shadow-lg: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
             --transition: all 0.3s ease;
         }
 
@@ -39,7 +40,7 @@
         }
 
         .kds-navbar {
-            background-color: #0f172a;
+            background-color: #ffffff;
             border-bottom: 2px solid var(--border-kds);
             padding: 16px 24px;
         }
@@ -82,12 +83,12 @@
         }
 
         @keyframes pulse-border {
-            0% { border-color: #24324d; }
+            0% { border-color: #e2e8f0; }
             100% { border-color: var(--danger-color); }
         }
 
         .order-header {
-            background-color: rgba(15, 23, 42, 0.4);
+            background-color: #f8fafc;
             padding: 16px;
             border-bottom: 1px solid var(--border-kds);
         }
@@ -95,11 +96,12 @@
         .order-body {
             padding: 16px;
             flex-grow: 1;
+            background-color: #ffffff;
         }
 
         .order-footer {
             padding: 16px;
-            background-color: rgba(15, 23, 42, 0.4);
+            background-color: #f8fafc;
             border-top: 1px solid var(--border-kds);
         }
 
@@ -107,20 +109,28 @@
             list-style: none;
             padding: 0;
             margin: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
         
         .item-list li {
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
         .item-list li:last-child {
-            border-bottom: none;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .item-qty {
             font-weight: 800;
             font-size: 1.25rem;
-            color: #60a5fa;
+            color: #1d4ed8;
             margin-right: 8px;
         }
         
@@ -135,14 +145,14 @@
             color: var(--text-muted);
             margin-top: 4px;
             font-style: italic;
-            padding-left: 28px;
+            padding-left: 0px;
         }
 
         .timer-badge {
             font-family: 'Courier New', Courier, monospace;
             font-size: 1.25rem;
             font-weight: 800;
-            background-color: rgba(15, 23, 42, 0.8);
+            background-color: #f1f5f9;
             border: 1px solid var(--border-kds);
             padding: 4px 12px;
             border-radius: 8px;
@@ -162,9 +172,9 @@
             font-size: 0.8rem;
             text-transform: uppercase;
         }
-        .service-badge.mesa { background-color: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid #3b82f6; }
-        .service-badge.llevar { background-color: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid #f59e0b; }
-        .service-badge.domicilio { background-color: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid #a855f7; }
+        .service-badge.mesa { background-color: rgba(59, 130, 246, 0.1); color: #1d4ed8; border: 1px solid #3b82f6; }
+        .service-badge.llevar { background-color: rgba(245, 158, 11, 0.1); color: #b45309; border: 1px solid #f59e0b; }
+        .service-badge.domicilio { background-color: rgba(168, 85, 247, 0.1); color: #7e22ce; border: 1px solid #a855f7; }
 
         .btn-kds-action {
             font-weight: 700;
@@ -196,24 +206,35 @@
         .category-tag {
             font-size: 0.7rem;
             padding: 2px 6px;
-            background-color: #334155;
-            color: #f1f5f9;
+            background-color: #e2e8f0;
+            color: #475569;
             border-radius: 4px;
             text-transform: uppercase;
             font-weight: 700;
             letter-spacing: 0.5px;
-            margin-left: 6px;
+            margin-left: 0px;
+            margin-top: 4px;
+            display: inline-block;
+            align-self: flex-start;
         }
         
         /* Contraste y legibilidad mejorados en las tarjetas del KDS */
         .order-card .text-muted,
         .order-card .text-secondary,
         .order-card .text-white-50 {
-            color: #e2e8f0 !important;
+            color: #475569 !important;
         }
         
         .order-card .item-mods {
-            color: #f1f5f9 !important;
+            color: #334155 !important;
+        }
+        
+        .order-card .border-secondary {
+            border-color: var(--border-kds) !important;
+        }
+        
+        .border-light-custom {
+            border-top: 1px solid var(--border-kds) !important;
         }
         
         @keyframes pulse-bg {
@@ -225,20 +246,20 @@
         }
 
         .item-list li.text-warning {
-            color: #fbbf24 !important;
-            border-left: 3px solid #fbbf24;
+            color: #b45309 !important;
+            border-left: 4px solid #f59e0b;
             padding-left: 8px !important;
-            background-color: rgba(245, 158, 11, 0.08);
-            border-radius: 4px;
-            margin: 4px 0;
+            background-color: #fffbeb !important;
+            border-color: #fde68a !important;
+            border-radius: 8px;
         }
         .item-list li.text-warning .item-qty {
-            color: #fbbf24 !important;
+            color: #b45309 !important;
         }
 
         @keyframes subtle-flash {
             0% { background-color: var(--card-kds); }
-            100% { background-color: rgba(239, 68, 68, 0.12); }
+            100% { background-color: rgba(239, 68, 68, 0.08); }
         }
         .order-card.danger-delay {
             border: 2px solid var(--danger-color) !important;
@@ -278,7 +299,7 @@
                 padding: 10px 12px;
             }
             .item-list li {
-                padding: 6px 0;
+                padding: 6px;
             }
             .item-qty {
                 font-size: 1.05rem;
@@ -288,7 +309,7 @@
             }
             .item-mods {
                 font-size: 0.75rem;
-                padding-left: 20px;
+                padding-left: 0px;
             }
             .timer-badge {
                 font-size: 1rem;
@@ -516,7 +537,7 @@
                     timerHtml = `<div class="timer-badge ${timeColorClass}"><i class="fa-regular fa-clock"></i> <span class="active-timer" data-estado="Enviada_Cocina" data-start="${order.creado_at || order.fecha_creacion}">${formatTime(getSecondsElapsed(order.creado_at || order.fecha_creacion))}</span></div>`;
                     
                     milestonesHtml = `
-                        <div class="mt-2 pt-2 border-top border-secondary text-white-50 small">
+                        <div class="mt-2 pt-2 border-top border-light-custom text-secondary small">
                             <div><i class="fa-regular fa-clock me-1 text-primary"></i> <b>En cola desde:</b> ${formatLocalTime(order.creado_at || order.fecha_creacion)}</div>
                         </div>
                     `;
@@ -532,7 +553,7 @@
                     let waitTimeFormatted = formatTime(waitSeconds);
                     
                     milestonesHtml = `
-                        <div class="mt-2 pt-2 border-top border-secondary text-white-50 small">
+                        <div class="mt-2 pt-2 border-top border-light-custom text-secondary small">
                             <div><i class="fa-solid fa-play me-1 text-warning"></i> <b>Aceptado a las:</b> ${formatLocalTime(order.preparacion_at)}</div>
                             <div><i class="fa-solid fa-hourglass-half me-1 text-warning"></i> <b>Espera en cola:</b> ${waitTimeFormatted}</div>
                         </div>
@@ -551,11 +572,11 @@
                     let listoTimeStr = order.listo_at || new Date().toISOString();
                     let cookSeconds = Math.max(0, Math.floor((parseUTCDate(listoTimeStr) - parseUTCDate(pTimeStr)) / 1000));
                     let cookTimeFormatted = formatTime(cookSeconds);
-
+ 
                     milestonesHtml = `
-                        <div class="mt-2 pt-2 border-top border-secondary text-white-50 small">
-                            <div><i class="fa-solid fa-check me-1 text-success"></i> <b>Aceptado:</b> ${formatLocalTime(order.preparacion_at)} <span class="text-white-50">(Cola: ${wTimeFormatted})</span></div>
-                            <div><i class="fa-solid fa-circle-check me-1 text-success"></i> <b>Terminado:</b> ${formatLocalTime(order.listo_at)} <span class="text-white-50">(Cocina: ${cookTimeFormatted})</span></div>
+                        <div class="mt-2 pt-2 border-top border-light-custom text-secondary small">
+                            <div><i class="fa-solid fa-check me-1 text-success"></i> <b>Aceptado:</b> ${formatLocalTime(order.preparacion_at)} <span class="text-muted">(Cola: ${wTimeFormatted})</span></div>
+                            <div><i class="fa-solid fa-circle-check me-1 text-success"></i> <b>Terminado:</b> ${formatLocalTime(order.listo_at)} <span class="text-muted">(Cocina: ${cookTimeFormatted})</span></div>
                         </div>
                     `;
                     break;

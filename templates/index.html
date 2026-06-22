@@ -874,8 +874,12 @@
                         </div>
                         
                         {% set grand_total = namespace(value=0.0) %}
+                        {% set all_paid = namespace(value=true) %}
                         {% for o in group_ordenes %}
                             {% set grand_total.value = grand_total.value + o.total %}
+                            {% if o.estado_pago != 'Pagada' %}
+                                {% set all_paid.value = false %}
+                            {% endif %}
                             <div class="ticket-card {{ 'dl-border' if o.negocio == 'don_lomito' else 'mi-border' }} mb-2" data-estado="{{ o.estado }}">
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <div>
@@ -883,6 +887,11 @@
                                         <span class="badge bg-{{ 'danger' if o.negocio == 'don_lomito' else 'success' }} px-2 ms-1 text-uppercase">
                                             {{ o.negocio.replace('don_', '') }}
                                         </span>
+                                        {% if o.estado_pago == 'Pagada' %}
+                                            <span class="badge bg-success px-2 ms-1 text-uppercase text-white">
+                                                <i class="fa-solid fa-circle-check me-1"></i> Pagado
+                                            </span>
+                                        {% endif %}
                                     </div>
                                     {% if o.estado == 'Entregado' %}
                                         <span class="badge bg-success text-white text-uppercase small fw-bold">
@@ -913,6 +922,22 @@
                                 <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary">
                                     <h5 class="mb-0 fw-bold font-monospace text-white">${{ o.total }}</h5>
                                 </div>
+
+                                {% if o.estado_pago == 'Pagada' %}
+                                    <div class="mt-2 text-end">
+                                        <button class="btn btn-sm btn-success fw-bold w-100 py-1" onclick="archivarIndividual({{ o.id }})">
+                                            <i class="fa-solid fa-box-archive me-1"></i>
+                                            {% set s_type = o.tipo_servicio.lower() if o.tipo_servicio else '' %}
+                                            {% if 'comer' in s_type %}
+                                                Cliente Retirado
+                                            {% elif 'llevar' in s_type %}
+                                                Orden Entregada
+                                            {% else %}
+                                                Recibido por Cliente
+                                            {% endif %}
+                                        </button>
+                                    </div>
+                                {% endif %}
                             </div>
                         {% endfor %}
                         
@@ -922,19 +947,34 @@
                             <h4 class="mb-0 fw-extrabold text-white font-monospace">${{ "%.2f"|format(grand_total.value) }}</h4>
                         </div>
                         <div class="d-flex gap-2 mt-2">
-                            <button class="btn btn-outline-light flex-fill fw-bold py-2"
-                                    data-ticket-id="{{ ticket_id }}"
-                                    data-tipo="{{ group_ordenes[0].tipo_servicio }}"
-                                    onclick="editarPedidoCompleto(this)">
-                                <i class="fa-solid fa-pen-to-square me-1"></i> EDITAR MESA
-                            </button>
-                            <button class="btn btn-success flex-fill fw-bold py-2 btn-cobrar-unificado shadow-sm"
-                                    data-ticket-id="{{ ticket_id }}"
-                                    data-total="{{ grand_total.value }}"
-                                    data-orders='[{% for o in group_ordenes %}{"id": {{ o.id }}, "negocio": "{{ o.negocio }}", "total": {{ o.total }}}{% if not loop.last %},{% endif %}{% endfor %}]'
-                                    onclick="abrirModalPagoTicket(this)">
-                                <i class="fa-solid fa-circle-dollar-to-slot me-1"></i> COBRAR MESA
-                            </button>
+                            {% if not all_paid.value %}
+                                <button class="btn btn-outline-light flex-fill fw-bold py-2"
+                                        data-ticket-id="{{ ticket_id }}"
+                                        data-tipo="{{ group_ordenes[0].tipo_servicio }}"
+                                        onclick="editarPedidoCompleto(this)">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i> EDITAR MESA
+                                </button>
+                                <button class="btn btn-success flex-fill fw-bold py-2 btn-cobrar-unificado shadow-sm"
+                                        data-ticket-id="{{ ticket_id }}"
+                                        data-total="{{ grand_total.value }}"
+                                        data-orders='[{% for o in group_ordenes %}{"id": {{ o.id }}, "negocio": "{{ o.negocio }}", "total": {{ o.total }}}{% if not loop.last %},{% endif %}{% endfor %}]'
+                                        onclick="abrirModalPagoTicket(this)">
+                                    <i class="fa-solid fa-circle-dollar-to-slot me-1"></i> COBRAR MESA
+                                </button>
+                            {% else %}
+                                <button class="btn btn-success flex-fill fw-bold py-2 shadow-sm"
+                                        onclick="archivarTicket('{{ ticket_id }}')">
+                                    <i class="fa-solid fa-box-archive me-1"></i>
+                                    {% set s_type = group_ordenes[0].tipo_servicio.lower() if group_ordenes[0].tipo_servicio else '' %}
+                                    {% if 'comer' in s_type %}
+                                        Cliente Retirado
+                                    {% elif 'llevar' in s_type %}
+                                        Orden Entregada
+                                    {% else %}
+                                        Recibido por Cliente
+                                    {% endif %}
+                                </button>
+                            {% endif %}
                         </div>
                         
                         <!-- APARTADO SECUNDARIO / COBRO SEPARADO -->
@@ -953,13 +993,19 @@
                                         <span class="badge bg-{{ 'danger' if o.negocio == 'don_lomito' else 'success' }} text-uppercase" style="font-size: 0.7rem;">
                                             {{ o.negocio.replace('don_', '') }} (${{ o.total }})
                                         </span>
-                                        <button class="btn btn-sm btn-outline-success py-0 px-2 fw-bold" style="font-size: 0.75rem;"
-                                                data-id="{{ o.id }}"
-                                                data-total="{{ o.total }}"
-                                                data-ticket-id="{{ ticket_id }}"
-                                                onclick="abrirModalPagoFromButton(this)">
-                                            Cobrar
-                                        </button>
+                                        {% if o.estado_pago == 'Pagada' %}
+                                            <span class="badge bg-success py-1 px-2 fw-bold" style="font-size: 0.75rem;">
+                                                Pagado
+                                            </span>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-outline-success py-0 px-2 fw-bold" style="font-size: 0.75rem;"
+                                                    data-id="{{ o.id }}"
+                                                    data-total="{{ o.total }}"
+                                                    data-ticket-id="{{ ticket_id }}"
+                                                    onclick="abrirModalPagoFromButton(this)">
+                                                Cobrar
+                                            </button>
+                                        {% endif %}
                                     </div>
                                 {% endfor %}
                             </div>
@@ -1115,6 +1161,7 @@
 let modalModificadores = null;
 let modalPagoInstance = null;
 let currentOrdersState = {};
+let isEditingOrder = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     // Inicializar instancias de Bootstrap Modals de forma segura
@@ -1151,6 +1198,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- SINCRONIZACIÓN AUTOMÁTICA EN TIEMPO REAL CON COCO/KDS ---
 async function checkOrdersSync() {
+    if (isEditingOrder) return;
     try {
         const r = await fetch(`/api/active_orders_status?_=${Date.now()}`);
         if (!r.ok) return;
@@ -1432,6 +1480,8 @@ function seleccionarServicio(tipo) {
 
 // --- MODIFICADORES MULTI-SELECCIÓN ---
 function prepararItem(nombre, precio, id, negocio, categoria) {
+    const opciones = JSON.parse(document.getElementById('data-'+id).textContent);
+    
     itemPrep = { 
         nombre: nombre, 
         precioBase: precio, 
@@ -1440,6 +1490,26 @@ function prepararItem(nombre, precio, id, negocio, categoria) {
         negocio: negocio, 
         categoria: categoria 
     };
+
+    if (!opciones || opciones.length === 0) {
+        // Bypass modal: agregar directamente al carrito
+        let itemKey = itemPrep.nombre + JSON.stringify(itemPrep.mods.map(m=>m.nombre).sort());
+        let indexExistente = carrito.findIndex(i => {
+            let currentKey = i.nombre + JSON.stringify(i.mods.map(m=>m.nombre).sort());
+            return currentKey === itemKey;
+        });
+
+        if (indexExistente > -1) {
+            carrito[indexExistente].cantidad += 1;
+        } else {
+            itemPrep.cantidad = 1;
+            carrito.push({...itemPrep});
+        }
+        
+        actualizarCarritoUI();
+        guardarCarritoSession();
+        return;
+    }
     
     document.getElementById('prep-nombre').innerText = nombre;
     document.getElementById('prep-categoria').innerText = categoria;
@@ -1453,23 +1523,17 @@ function prepararItem(nombre, precio, id, negocio, categoria) {
         headerLine.style.backgroundColor = 'var(--mi-primary)';
     }
     
-    const opciones = JSON.parse(document.getElementById('data-'+id).textContent);
     let html = "";
-    
-    if (opciones && opciones.length > 0) {
-        opciones.forEach((o, index) => {
-            let labelPrecio = o.precio > 0 ? `(+$${o.precio.toFixed(2)})` : '(Gratis)';
-            html += `
-                <div class="col-6">
-                    <div class="modifier-chip" id="mod-${index}" onclick="toggleMod('${o.nombre}', ${o.precio}, ${index})">
-                        <span>${o.nombre}</span>
-                        <span class="text-muted small">${labelPrecio}</span>
-                    </div>
-                </div>`;
-        });
-    } else {
-        html = '<div class="col-12 text-center text-muted py-3">Este producto no cuenta con adicionales o modificaciones.</div>';
-    }
+    opciones.forEach((o, index) => {
+        let labelPrecio = o.precio > 0 ? `(+$${o.precio.toFixed(2)})` : '(Gratis)';
+        html += `
+            <div class="col-6">
+                <div class="modifier-chip" id="mod-${index}" onclick="toggleMod('${o.nombre}', ${o.precio}, ${index})">
+                    <span>${o.nombre}</span>
+                    <span class="text-muted small">${labelPrecio}</span>
+                </div>
+            </div>`;
+    });
     
     document.getElementById('prep-opciones').innerHTML = html;
     if (modalModificadores) {
@@ -1758,6 +1822,7 @@ function editarOrden(id, ticket_id, totalOrden, tipo, negocio, estado) {
     document.getElementById('nombre-mesa-ticket').value = rawTicket;
     carrito = items; 
     actualizarCarritoUI();
+    isEditingOrder = true;
 }
 
 function limpiarCarrito() {
@@ -1770,6 +1835,7 @@ function limpiarCarrito() {
     document.getElementById('direccion-delivery').value = '';
     document.getElementById('telefono-delivery').value = '';
     actualizarCarritoUI();
+    isEditingOrder = false;
 }
 
 // --- COBRO DE TICKET CON CALCULADORA ---
@@ -1983,6 +2049,7 @@ function editarPedidoCompleto(btn) {
     
     carrito = combinedItems;
     actualizarCarritoUI();
+    isEditingOrder = true;
 }
 
 function seleccionarMetodo(metodo) {
@@ -2071,6 +2138,36 @@ function procesarPago() {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(payload)
     }).then(() => location.reload());
+}
+
+function archivarTicket(ticketId) {
+    if (!confirm('¿Seguro que deseas archivar/finalizar esta mesa/ticket?')) return;
+    fetch('/archivar_orden', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ ticket_id: ticketId })
+    }).then(r => {
+        if (r.ok) {
+            location.reload();
+        } else {
+            alert('Error al archivar el ticket');
+        }
+    });
+}
+
+function archivarIndividual(orderId) {
+    if (!confirm('¿Seguro que deseas archivar/finalizar este pedido individual?')) return;
+    fetch('/archivar_orden', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ id: orderId })
+    }).then(r => {
+        if (r.ok) {
+            location.reload();
+        } else {
+            alert('Error al archivar la orden');
+        }
+    });
 }
 
 function filtrarCuentas(type) {
