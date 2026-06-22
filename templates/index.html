@@ -849,7 +849,7 @@
         </div>
 
         <!-- SECCIÓN 3: CUENTAS ACTIVAS (col-md-3) -->
-        <div class="col-lg-3 col-md-12">
+        <div class="col-lg-3 col-md-12" id="cuentas-activas-panel">
             <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between text-white">
                 <span><i class="fa-solid fa-clock-rotate-left text-secondary me-2"></i>Cuentas Activas</span>
                 <span class="badge bg-secondary rounded-pill">{{ ordenes|length }}</span>
@@ -1162,6 +1162,7 @@ let modalModificadores = null;
 let modalPagoInstance = null;
 let currentOrdersState = {};
 let isEditingOrder = false;
+let isCartActive = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     // Inicializar instancias de Bootstrap Modals de forma segura
@@ -1198,6 +1199,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- SINCRONIZACIÓN AUTOMÁTICA EN TIEMPO REAL CON COCO/KDS ---
 async function checkOrdersSync() {
+    if (isCartActive) return;
     if (isEditingOrder) return;
     try {
         const r = await fetch(`/api/active_orders_status?_=${Date.now()}`);
@@ -1227,8 +1229,47 @@ async function checkOrdersSync() {
         }
         
         if (outOfSync) {
-            console.log("Cambios en cocina detectados. Sincronizando POS...");
-            location.reload();
+            console.log("Cambios en cocina detectados. Sincronizando panel de cuentas activas...");
+            const response = await fetch(`/?_=${Date.now()}`);
+            if (response.ok) {
+                const htmlText = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                const newPanel = doc.getElementById('cuentas-activas-panel');
+                if (newPanel) {
+                    document.getElementById('cuentas-activas-panel').innerHTML = newPanel.innerHTML;
+                    
+                    // Re-ejecutar los scripts inline que formatean los resúmenes de items
+                    document.querySelectorAll('#cuentas-activas-panel script').forEach(script => {
+                        const newScript = document.createElement('script');
+                        newScript.textContent = script.textContent;
+                        script.parentNode.replaceChild(newScript, script);
+                    });
+
+                    // Actualizar el estado local de las órdenes
+                    currentOrdersState = {};
+                    document.querySelectorAll('.ticket-card').forEach(card => {
+                        const idTag = card.querySelector('[id^="items-data-"]');
+                        if (idTag) {
+                            const id = idTag.id.replace('items-data-', '');
+                            const estado = card.dataset.estado || '';
+                            currentOrdersState[id] = estado;
+                        }
+                    });
+
+                    // Mantener filtros activos si los hay
+                    actualizarContadoresFiltros();
+                    const activeFilterBtn = document.querySelector('.btn-group[role="group"] .btn.active');
+                    if (activeFilterBtn) {
+                        const filterId = activeFilterBtn.id;
+                        if (filterId === 'btn-filter-pending-pay') {
+                            filtrarCuentas('pending-pay');
+                        } else {
+                            filtrarCuentas('all');
+                        }
+                    }
+                }
+            }
         }
     } catch(e) {
         console.error("Error sincronizando estados de comanda:", e);
@@ -1631,6 +1672,7 @@ function actualizarCarritoUI() {
     
     document.getElementById('total-carrito').innerText = total.toFixed(2);
     guardarCarritoSession();
+    isCartActive = (carrito.length > 0 || isEditingOrder);
 }
 
 function cambiarCantidad(index, delta) {
@@ -1820,9 +1862,9 @@ function editarOrden(id, ticket_id, totalOrden, tipo, negocio, estado) {
     }
     
     document.getElementById('nombre-mesa-ticket').value = rawTicket;
+    isEditingOrder = true;
     carrito = items; 
     actualizarCarritoUI();
-    isEditingOrder = true;
 }
 
 function limpiarCarrito() {
@@ -1834,8 +1876,8 @@ function limpiarCarrito() {
     document.getElementById('nombre-mesa-ticket').value = '';
     document.getElementById('direccion-delivery').value = '';
     document.getElementById('telefono-delivery').value = '';
-    actualizarCarritoUI();
     isEditingOrder = false;
+    actualizarCarritoUI();
 }
 
 // --- COBRO DE TICKET CON CALCULADORA ---
@@ -2047,9 +2089,9 @@ function editarPedidoCompleto(btn) {
     
     document.getElementById('nombre-mesa-ticket').value = rawTicket;
     
+    isEditingOrder = true;
     carrito = combinedItems;
     actualizarCarritoUI();
-    isEditingOrder = true;
 }
 
 function seleccionarMetodo(metodo) {
