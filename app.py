@@ -172,16 +172,84 @@ with app.app_context():
     except Exception:
         db.session.rollback()
 
-    # Verificación de productos y carga de menú
+    # Verificación y sincronización de productos desde el CSV
     csv_exists = os.path.exists('menu_data.csv')
-    productos_count = Producto.query.count()
-
-    if productos_count == 0:
-        if csv_exists:
-            print("Base de datos de productos vacía, cargando menú...")
-            cargar_menu('menu_data.csv')
-        else:
-            print("Base de datos de productos vacía y no se encontró menu_data.csv.")
+    if csv_exists:
+        print("Sincronizando base de datos de productos con menu_data.csv...")
+        try:
+            import csv
+            with open('menu_data.csv', mode='r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    nombre = row.get('nombre')
+                    if nombre:
+                        nombre = nombre.strip()
+                    else:
+                        continue
+                    
+                    negocio = row.get('negocio', 'don_lomito').strip().lower()
+                    producto_existente = Producto.query.filter_by(nombre=nombre, negocio=negocio).first()
+                    
+                    try:
+                        precio = float(row.get('precio_base', 0.0))
+                    except (ValueError, TypeError):
+                        precio = 0.0
+                        
+                    categoria = row.get('categoria', 'General').strip().capitalize()
+                    extras_str = row.get('opciones', '')
+                    
+                    if producto_existente:
+                        # Si ya existe, actualizamos precio y categoría si cambiaron
+                        producto_existente.precio_base = precio
+                        producto_existente.categoria = categoria
+                        db.session.commit()
+                        
+                        # Sincronizamos las opciones/extras del producto
+                        if extras_str:
+                            Opcion.query.filter_by(producto_id=producto_existente.id).delete()
+                            for opt_part in extras_str.split(','):
+                                opt_part = opt_part.strip()
+                                if opt_part:
+                                    if ':' in opt_part:
+                                        opt_name, opt_price = opt_part.split(':', 1)
+                                        try:
+                                            opt_price = float(opt_price.strip())
+                                        except ValueError:
+                                            opt_price = 0.0
+                                    else:
+                                        opt_name = opt_part
+                                        opt_price = 0.0
+                                    nueva_opcion = Opcion(nombre=opt_name.strip(), precio_extra=opt_price, producto_id=producto_existente.id)
+                                    db.session.add(nueva_opcion)
+                            db.session.commit()
+                    else:
+                        # Si no existe, lo creamos
+                        nuevo_producto = Producto(nombre=nombre, precio_base=precio, negocio=negocio, categoria=categoria)
+                        db.session.add(nuevo_producto)
+                        db.session.commit()
+                        
+                        if extras_str:
+                            for opt_part in extras_str.split(','):
+                                opt_part = opt_part.strip()
+                                if opt_part:
+                                    if ':' in opt_part:
+                                        opt_name, opt_price = opt_part.split(':', 1)
+                                        try:
+                                            opt_price = float(opt_price.strip())
+                                        except ValueError:
+                                            opt_price = 0.0
+                                    else:
+                                        opt_name = opt_part
+                                        opt_price = 0.0
+                                    nueva_opcion = Opcion(nombre=opt_name.strip(), precio_extra=opt_price, producto_id=nuevo_producto.id)
+                                    db.session.add(nueva_opcion)
+                            db.session.commit()
+            print("Sincronización de productos finalizada.")
+        except Exception as e:
+            print(f"ERROR al sincronizar menú desde CSV: {e}")
+            db.session.rollback()
+    else:
+        print("No se encontró menu_data.csv para sincronizar.")
     
     print("Base de datos cargada correctamente")
 
