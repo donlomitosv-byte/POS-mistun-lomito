@@ -17,32 +17,32 @@
     
     <style>
         :root {
-            /* MODO OSCURO PREMIUM (HSL Tailored Colors) */
-            --bg-base: #0c0e17;       /* Gris carbón texturizado muy oscuro */
-            --bg-card: #151824;       /* Slate oscuro para contenedores y tarjetas */
-            --border-color: #232738;   /* Bordes definidos pero sutiles */
-            --text-main: #f3f4f6;      /* Texto principal blanco suave */
-            --text-muted: #e2e8f0;     /* Texto secundario gris claro con alto contraste */
-            --glass-bg: rgba(21, 24, 36, 0.85);
+            /* MODO CLARO PREMIUM (Slate-based Clean Theme) */
+            --bg-base: #f8fafc;       /* Fondo principal claro */
+            --bg-card: #ffffff;       /* Contenedores y tarjetas blancos */
+            --border-color: #e2e8f0;   /* Bordes definidos pero muy claros */
+            --text-main: #0f172a;      /* Texto principal oscuro slate 900 */
+            --text-muted: #64748b;     /* Texto secundario slate 500 */
+            --glass-bg: rgba(255, 255, 255, 0.85);
             
             /* Identidad Don Lomito (Terracota / Naranja / Tacos) */
             --dl-primary: #f26c1b;
             --dl-hover: #d35400;
-            --dl-light: rgba(242, 108, 27, 0.15);
-            --dl-border: rgba(242, 108, 27, 0.35);
+            --dl-light: rgba(242, 108, 27, 0.08);
+            --dl-border: rgba(242, 108, 27, 0.2);
             
             /* Identidad Mistun (Verde Oliva / Café / Cafetería) */
             --mi-primary: #76a035;
             --mi-hover: #5d7f2a;
-            --mi-light: rgba(118, 160, 53, 0.15);
-            --mi-border: rgba(118, 160, 53, 0.35);
+            --mi-light: rgba(118, 160, 53, 0.08);
+            --mi-border: rgba(118, 160, 53, 0.2);
             
             /* Globales */
             --radius-lg: 16px;
             --radius-md: 12px;
             --radius-sm: 8px;
-            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -183,12 +183,12 @@
         }
 
         .form-control, .form-select {
-            background-color: #1a1d2e;
+            background-color: #ffffff;
             color: var(--text-main);
             border: 1px solid var(--border-color);
         }
         .form-control:focus, .form-select:focus {
-            background-color: #1d2138;
+            background-color: #ffffff;
             color: var(--text-main);
             border-color: var(--dl-primary);
             box-shadow: 0 0 0 3px rgba(242, 108, 27, 0.2);
@@ -298,8 +298,8 @@
         }
         
         .cart-header {
-            background: #090b12;
-            color: white;
+            background: #f8fafc;
+            color: var(--text-main);
             padding: 16px 20px;
             border-bottom: 1px solid var(--border-color);
         }
@@ -318,9 +318,9 @@
         .service-type-btn:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
         
         .service-type-btn.active {
-            background: white;
-            color: #0c0e17;
-            border-color: white;
+            background: #0f172a;
+            color: white;
+            border-color: #0f172a;
         }
         
         .cart-body {
@@ -328,7 +328,7 @@
         }
 
         .carrito-item {
-            background: #11131f;
+            background: #fafaf9;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             padding: 12px;
@@ -352,21 +352,21 @@
         
         .cart-item-details {
             font-size: 0.8rem;
-            color: #f1f5f9 !important;
+            color: var(--text-muted) !important;
             line-height: 1.3;
         }
         
-        /* Contraste y legibilidad mejorados en el Carrito y Cuentas Activas */
+        /* Contraste y legibilidad en el Carrito */
         .cart-card .text-muted,
         .cart-card .text-secondary,
         .cart-card .text-white-50,
         .ticket-group .text-muted,
         .ticket-group .text-secondary,
         .ticket-group .text-white-50 {
-            color: #e2e8f0 !important;
+            color: var(--text-muted) !important;
         }
         .modifier-chip .text-muted {
-            color: #e2e8f0 !important;
+            color: var(--text-muted) !important;
         }
         
         .qty-controls {
@@ -381,7 +381,7 @@
             height: 26px;
             border-radius: 50%;
             border: 1px solid var(--border-color);
-            background: #1a1d2e;
+            background: #f1f5f9;
             color: var(--text-main);
             display: flex;
             align-items: center;
@@ -444,7 +444,7 @@
             padding: 12px;
             margin-bottom: 8px;
             transition: var(--transition);
-            background: #11131f;
+            background: #fafaf9;
         }
         .ticket-card.dl-border { border-left: 5px solid var(--dl-primary); }
         .ticket-card.mi-border { border-left: 5px solid var(--mi-primary); }
@@ -465,10 +465,7 @@
         }
         .modal-footer {
             border-top: 1px solid var(--border-color);
-            background-color: #0f111a;
-        }
-        .btn-close {
-            filter: invert(1);
+            background-color: #f8fafc;
         }
 
         /* Modal chips de modificadores */
@@ -478,7 +475,7 @@
             font-weight: 600;
             font-size: 0.85rem;
             border: 2px solid var(--border-color);
-            background: #11131f;
+            background: #fafaf9;
             cursor: pointer;
             transition: var(--transition);
             display: flex;
@@ -508,7 +505,7 @@
             padding: 16px;
             border-radius: var(--radius-md);
             border: 2px solid var(--border-color);
-            background: #11131f;
+            background: #fafaf9;
             color: var(--text-main);
             font-weight: 700;
             transition: var(--transition);
@@ -529,14 +526,14 @@
         .quick-bill-btn {
             padding: 12px;
             border-radius: var(--radius-sm);
-            background: #232738;
-            color: white;
+            background: #f1f5f9;
+            color: #0f172a;
             border: 1px solid var(--border-color);
             font-weight: 700;
             transition: var(--transition);
         }
         .quick-bill-btn:hover {
-            background: #31374f;
+            background: #cbd5e1;
         }
 
         /* Panel de guardado */
@@ -554,8 +551,8 @@
         }
         .scrollbar-slim::-webkit-scrollbar { width: 6px; }
         .scrollbar-slim::-webkit-scrollbar-track { background: transparent; }
-        .scrollbar-slim::-webkit-scrollbar-thumb { background: #232738; border-radius: 10px; }
-        .scrollbar-slim::-webkit-scrollbar-thumb:hover { background: #31374f; }
+        .scrollbar-slim::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .scrollbar-slim::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
         .brand-col-mistun {
             border-left: 2px solid var(--border-color);
@@ -637,43 +634,66 @@
                 padding: 15px;
             }
         }
+
+        /* Navbar styling */
+        .navbar-custom {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #0f172a !important;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-link-custom {
+            font-weight: 600;
+            color: #64748b !important;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .nav-link-custom:hover, .nav-link-custom.active {
+            background-color: #f1f5f9;
+            color: #0f172a !important;
+        }
     </style>
 </head>
 <body>
 
-<!-- HEADER DEL POS -->
-<header class="pos-header">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <div class="brand-logo">
-            <i class="fa-solid fa-cash-register fa-xl text-white"></i>
-            <h1>
-                <span class="dl-color">Don Lomito</span>
-                <span class="text-white">&</span>
-                <span class="mi-color">Mistun</span>
-                <small class="text-muted fs-6 fw-normal ms-2">POS v2.0</small>
-            </h1>
+    <!-- NAV BAR -->
+    <nav class="navbar navbar-expand-lg navbar-custom mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <i class="fa-solid fa-cash-register text-primary me-2"></i>PUNTO DE VENTA (POS)
+            </span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <div class="navbar-nav">
+                    <a href="/" class="nav-link-custom active"><i class="fa-solid fa-cash-register me-1"></i>POS</a>
+                    <a href="/pedidos" class="nav-link-custom"><i class="fa-solid fa-truck-ramp-box me-1"></i>Gestor</a>
+                    <a href="/kds/don_lomito" class="nav-link-custom" target="_blank"><i class="fa-solid fa-pepper-hot me-1 text-danger"></i>KDS Lomito</a>
+                    <a href="/kds/mistun" class="nav-link-custom" target="_blank"><i class="fa-solid fa-mug-hot me-1 text-success"></i>KDS Mistun</a>
+                    <a href="/cierre_caja" class="nav-link-custom"><i class="fa-solid fa-vault me-1"></i>Cierre de Caja</a>
+                    <a href="/admin" class="nav-link-custom"><i class="fa-solid fa-gears me-1"></i>Admin</a>
+                </div>
+            </div>
         </div>
-        <div class="d-flex align-items-center gap-2">
-            <a href="/kds/don_lomito" target="_blank" class="btn btn-sm btn-outline-danger px-3 rounded-pill fw-bold">
-                <i class="fa-solid fa-utensils me-1"></i> KDS Don Lomito
-            </a>
-            <a href="/kds/mistun" target="_blank" class="btn btn-sm btn-outline-success px-3 rounded-pill fw-bold">
-                <i class="fa-solid fa-mug-hot me-1"></i> KDS Mistun
-            </a>
-            <a href="/cierre_caja" class="btn btn-sm btn-light px-3 rounded-pill fw-bold">
-                <i class="fa-solid fa-vault me-1"></i> Cierre de Caja
-            </a>
-            <a href="/admin" class="btn btn-sm btn-dark px-3 rounded-pill fw-bold border border-secondary">
-                <i class="fa-solid fa-gears me-1"></i> Panel Admin
-            </a>
-        </div>
-    </div>
-</header>
+    </nav>
 
 <div class="container-fluid px-4 py-1">
     <div class="row">
-        <!-- SECCIÓN 1: MENÚ Y PRODUCTOS (col-md-5) -->
-        <div class="col-lg-5 col-md-12 mb-4">
+        <!-- SECCIÓN 1: MENÚ Y PRODUCTOS (col-md-8) -->
+        <div class="col-lg-8 col-md-12 mb-4">
             <!-- BUSCADOR -->
             <div class="search-container mb-4">
                 <i class="fa-solid fa-magnifying-glass"></i>
@@ -710,7 +730,7 @@
                 </div>
 
                 <!-- Placeholder de selección -->
-                <div id="no-products-dl" class="text-center py-4 text-white-50 small bg-dark rounded border border-secondary mb-3">
+                <div id="no-products-dl" class="text-center py-4 text-muted small bg-light rounded border mb-3">
                     <i class="fa-solid fa-hand-pointer me-1 text-warning"></i> Selecciona una categoría de Don Lomito
                 </div>
 
@@ -755,7 +775,7 @@
                 </div>
 
                 <!-- Placeholder de selección -->
-                <div id="no-products-mi" class="text-center py-4 text-white-50 small bg-dark rounded border border-secondary mb-3">
+                <div id="no-products-mi" class="text-center py-4 text-muted small bg-light rounded border mb-3">
                     <i class="fa-solid fa-hand-pointer me-1 text-warning"></i> Selecciona una categoría de Mistun
                 </div>
 
@@ -814,12 +834,12 @@
                             </div>
                         </div>
                         <div class="col-12" id="wrapper-input-ticket">
-                            <input type="text" id="nombre-mesa-ticket" class="form-control form-control-sm border-0 bg-dark text-white rounded" placeholder="Ingresar Número de Mesa #">
+                            <input type="text" id="nombre-mesa-ticket" class="form-control form-control-sm rounded" placeholder="Ingresar Número de Mesa #">
                         </div>
                         <!-- Campo para detalles adicionales de entrega si es Domicilio -->
                         <div class="col-12" id="wrapper-input-delivery" style="display:none;">
-                            <input type="text" id="direccion-delivery" class="form-control form-control-sm border-0 bg-dark text-white rounded mb-1" placeholder="Dirección del Cliente">
-                            <input type="text" id="telefono-delivery" class="form-control form-control-sm border-0 bg-dark text-white rounded" placeholder="Teléfono del Cliente">
+                            <input type="text" id="direccion-delivery" class="form-control form-control-sm rounded mb-1" placeholder="Dirección del Cliente">
+                            <input type="text" id="telefono-delivery" class="form-control form-control-sm rounded" placeholder="Teléfono del Cliente">
                         </div>
                     </div>
                 </div>
@@ -828,7 +848,7 @@
                 <div class="cart-body">
                     <div id="lista-carrito" class="scrollbar-slim" style="min-height: 250px;">
                         <div class="text-center py-5 text-muted">
-                            <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-white-50 opacity-25"></i>
+                            <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-muted opacity-50"></i>
                             <p class="mb-0 fw-medium">El pedido está vacío</p>
                             <small>Selecciona un producto del menú para comenzar</small>
                         </div>
@@ -838,185 +858,13 @@
                     
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="fs-5 text-muted fw-bold">TOTAL</span>
-                        <span class="fs-2 fw-extrabold text-white font-monospace">$<span id="total-carrito">0.00</span></span>
+                        <span class="fs-2 fw-extrabold text-dark font-monospace">$<span id="total-carrito">0.00</span></span>
                     </div>
 
-                    <button class="btn btn-lg w-100 btn-primary py-3 fw-bold rounded-3 shadow-sm" onclick="enviarPedido()">
-                        <i class="fa-solid fa-paper-plane me-2"></i> ENVIAR A COCINA (KDS)
+                    <button class="btn btn-lg w-100 btn-primary py-3 fw-bold rounded-3 shadow-sm" onclick="iniciarPagoPedido()">
+                        <i class="fa-solid fa-paper-plane me-2"></i> COBRAR Y ENVIAR
                     </button>
                 </div>
-            </div>
-        </div>
-
-        <!-- SECCIÓN 3: CUENTAS ACTIVAS (col-md-3) -->
-        <div class="col-lg-3 col-md-12" id="cuentas-activas-panel">
-            <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between text-white">
-                <span><i class="fa-solid fa-clock-rotate-left text-secondary me-2"></i>Cuentas Activas</span>
-                <span class="badge bg-secondary rounded-pill">{{ ordenes|length }}</span>
-            </h5>
-            
-            <!-- FILTROS DE CUENTAS ACTIVAS -->
-            <div class="btn-group btn-group-sm w-100 mb-3" role="group">
-                <button type="button" class="btn btn-outline-secondary active fw-bold" id="btn-filter-all" onclick="filtrarCuentas('all')">
-                    Todas (<span id="count-all-tickets">0</span>)
-                </button>
-                <button type="button" class="btn btn-outline-warning fw-bold" id="btn-filter-pending-pay" onclick="filtrarCuentas('pending-pay')">
-                    Entregadas (<span id="count-pending-pay-tickets">0</span>)
-                </button>
-            </div>
-            
-            <div class="scrollbar-slim" style="max-height: 70vh;">
-                {% for ticket_id, group_ordenes in ordenes | groupby('ticket_id') %}
-                    <div class="ticket-group mb-3">
-                        <div class="ticket-group-title d-flex justify-content-between align-items-center">
-                            <span><i class="fa-solid fa-folder-open me-2 text-warning"></i>{{ ticket_id }}</span>
-                            <span class="badge bg-secondary font-monospace">{{ group_ordenes[0].tipo_servicio }}</span>
-                        </div>
-                        
-                        {% set grand_total = namespace(value=0.0) %}
-                        {% set all_paid = namespace(value=true) %}
-                        {% for o in group_ordenes %}
-                            {% set grand_total.value = grand_total.value + o.total %}
-                            {% if o.estado_pago != 'Pagada' %}
-                                {% set all_paid.value = false %}
-                            {% endif %}
-                            <div class="ticket-card {{ 'dl-border' if o.negocio == 'don_lomito' else 'mi-border' }} mb-2" data-estado="{{ o.estado }}">
-                                <div class="d-flex justify-content-between align-items-start mb-2">
-                                    <div>
-                                        <span class="badge bg-dark small">#{{ o.id }}</span>
-                                        <span class="badge bg-{{ 'danger' if o.negocio == 'don_lomito' else 'success' }} px-2 ms-1 text-uppercase">
-                                            {{ o.negocio.replace('don_', '') }}
-                                        </span>
-                                        {% if o.estado_pago == 'Pagada' %}
-                                            <span class="badge bg-success px-2 ms-1 text-uppercase text-white">
-                                                <i class="fa-solid fa-circle-check me-1"></i> Pagado
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                    {% if o.estado == 'Entregado' %}
-                                        <span class="badge bg-success text-white text-uppercase small fw-bold">
-                                            <i class="fa-solid fa-circle-check me-1"></i> Entregado
-                                        </span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark text-uppercase small fw-bold">
-                                            {{ o.estado.replace('_Cocina', '').replace('_', ' ') }}
-                                        </span>
-                                    {% endif %}
-                                </div>
-                                
-                                <script id="items-data-{{ o.id }}" type="application/json">{{ o.items_json | safe }}</script>
-                                
-                                <div class="small text-secondary fw-semibold mb-2" id="resumen-{{o.id}}"></div>
-                                <script>
-                                    (() => {
-                                        let items = JSON.parse(document.getElementById('items-data-{{ o.id }}').textContent);
-                                        let resText = items.map(i => {
-                                            let modsText = (i.mods && i.mods.length > 0) ? ` (${i.mods.map(m => typeof m === 'object' ? m.nombre : m).join(', ')})` : '';
-                                            let changeText = i.is_new ? ' [NUEVO]' : i.is_modified ? ' [MODIF]' : '';
-                                            return `${i.cantidad}x ${i.nombre}${modsText}${changeText}`;
-                                        }).join(", ");
-                                        document.getElementById('resumen-{{o.id}}').innerText = resText;
-                                    })();
-                                </script>
-                                
-                                <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top border-secondary">
-                                    <h5 class="mb-0 fw-bold font-monospace text-white">${{ o.total }}</h5>
-                                </div>
-
-                                {% if o.estado_pago == 'Pagada' %}
-                                    <div class="mt-2 text-end">
-                                        <button class="btn btn-sm btn-success fw-bold w-100 py-1" onclick="archivarIndividual({{ o.id }})">
-                                            <i class="fa-solid fa-box-archive me-1"></i>
-                                            {% set s_type = o.tipo_servicio.lower() if o.tipo_servicio else '' %}
-                                            {% if 'comer' in s_type %}
-                                                Cliente Retirado
-                                            {% elif 'llevar' in s_type %}
-                                                Orden Entregada
-                                            {% else %}
-                                                Recibido por Cliente
-                                            {% endif %}
-                                        </button>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                        
-                        <!-- BOTÓN DE COBRO MESA UNIFICADO (PRINCIPAL) -->
-                        <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary">
-                            <span class="text-white-50 small fw-bold">TOTAL MESA/TICKET:</span>
-                            <h4 class="mb-0 fw-extrabold text-white font-monospace">${{ "%.2f"|format(grand_total.value) }}</h4>
-                        </div>
-                        <div class="d-flex gap-2 mt-2">
-                            {% if not all_paid.value %}
-                                <button class="btn btn-outline-light flex-fill fw-bold py-2"
-                                        data-ticket-id="{{ ticket_id }}"
-                                        data-tipo="{{ group_ordenes[0].tipo_servicio }}"
-                                        onclick="editarPedidoCompleto(this)">
-                                    <i class="fa-solid fa-pen-to-square me-1"></i> EDITAR MESA
-                                </button>
-                                <button class="btn btn-success flex-fill fw-bold py-2 btn-cobrar-unificado shadow-sm"
-                                        data-ticket-id="{{ ticket_id }}"
-                                        data-total="{{ grand_total.value }}"
-                                        data-orders='[{% for o in group_ordenes %}{"id": {{ o.id }}, "negocio": "{{ o.negocio }}", "total": {{ o.total }}}{% if not loop.last %},{% endif %}{% endfor %}]'
-                                        onclick="abrirModalPagoTicket(this)">
-                                    <i class="fa-solid fa-circle-dollar-to-slot me-1"></i> COBRAR MESA
-                                </button>
-                            {% else %}
-                                <button class="btn btn-success flex-fill fw-bold py-2 shadow-sm"
-                                        onclick="archivarTicket('{{ ticket_id }}')">
-                                    <i class="fa-solid fa-box-archive me-1"></i>
-                                    {% set s_type = group_ordenes[0].tipo_servicio.lower() if group_ordenes[0].tipo_servicio else '' %}
-                                    {% if 'comer' in s_type %}
-                                        Cliente Retirado
-                                    {% elif 'llevar' in s_type %}
-                                        Orden Entregada
-                                    {% else %}
-                                        Recibido por Cliente
-                                    {% endif %}
-                                </button>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- APARTADO SECUNDARIO / COBRO SEPARADO -->
-                        <div class="mt-2 text-end">
-                            {% set collapse_id = "split-" ~ ticket_id|replace(' ', '-')|replace(':', '-')|replace('|', '-')|replace('#', '-') %}
-                            <button class="btn btn-sm btn-link text-white-50 text-decoration-none p-0" type="button" data-bs-toggle="collapse" data-bs-target="#{{ collapse_id }}" aria-expanded="false" style="font-size: 0.78rem;">
-                                <i class="fa-solid fa-arrows-split-up-and-left me-1"></i> Cobrar por Marca / Separado
-                            </button>
-                        </div>
-                        
-                        <div class="collapse mt-2" id="{{ collapse_id }}">
-                            <div class="bg-dark p-2 rounded border border-secondary">
-                                <small class="text-white-50 d-block mb-2 font-semibold" style="font-size: 0.75rem;">Cobro Individual por Marca:</small>
-                                {% for o in group_ordenes %}
-                                    <div class="d-flex justify-content-between align-items-center mb-1 pb-1 border-bottom border-secondary last-no-border">
-                                        <span class="badge bg-{{ 'danger' if o.negocio == 'don_lomito' else 'success' }} text-uppercase" style="font-size: 0.7rem;">
-                                            {{ o.negocio.replace('don_', '') }} (${{ o.total }})
-                                        </span>
-                                        {% if o.estado_pago == 'Pagada' %}
-                                            <span class="badge bg-success py-1 px-2 fw-bold" style="font-size: 0.75rem;">
-                                                Pagado
-                                            </span>
-                                        {% else %}
-                                            <button class="btn btn-sm btn-outline-success py-0 px-2 fw-bold" style="font-size: 0.75rem;"
-                                                    data-id="{{ o.id }}"
-                                                    data-total="{{ o.total }}"
-                                                    data-ticket-id="{{ ticket_id }}"
-                                                    onclick="abrirModalPagoFromButton(this)">
-                                                Cobrar
-                                            </button>
-                                        {% endif %}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="text-center py-5 bg-card border border-secondary rounded-4 text-muted">
-                        <i class="fa-solid fa-circle-check fa-2x mb-2 text-success"></i>
-                        <p class="mb-0 small fw-medium">No hay cuentas pendientes por cobrar</p>
-                    </div>
-                {% endfor %}
             </div>
         </div>
     </div>
@@ -1030,9 +878,9 @@
             <div class="modal-header border-0 pb-0">
                 <div>
                     <span class="text-uppercase text-muted small fw-bold" id="prep-categoria">CATEGORIA</span>
-                    <h4 class="modal-title fw-bold text-white" id="prep-nombre">Personalizar Producto</h4>
+                    <h4 class="modal-title fw-bold text-dark" id="prep-nombre">Personalizar Producto</h4>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body py-4">
                 <p class="fw-medium text-secondary mb-3"><i class="fa-solid fa-list-check me-2"></i>Selecciona modificadores o ingredientes extras:</p>
@@ -1043,7 +891,7 @@
             <div class="modal-footer border-0 rounded-bottom-4 d-flex justify-content-between align-items-center p-3">
                 <div class="text-start">
                     <span class="text-muted small fw-medium">Subtotal</span>
-                    <div class="fs-3 fw-bold text-white font-monospace">$<span id="prep-subtotal">0.00</span></div>
+                    <div class="fs-3 fw-bold text-dark font-monospace">$<span id="prep-subtotal">0.00</span></div>
                 </div>
                 <button type="button" class="btn btn-primary px-4 py-2 rounded-pill fw-bold" onclick="confirmarItem()">
                     <i class="fa-solid fa-cart-plus me-1"></i> Añadir a Pedido
@@ -1056,18 +904,18 @@
 <!-- MODAL DE PAGO CON CALCULADORA DE CAMBIO -->
 <div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-secondary rounded-4 shadow-lg overflow-hidden">
-            <div class="modal-header bg-dark text-white border-0 py-3">
-                <h5 class="modal-title fw-bold text-white">
+        <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+            <div class="modal-header bg-light text-dark border-bottom py-3">
+                <h5 class="modal-title fw-bold text-dark">
                     <i class="fa-solid fa-cash-register me-2 text-warning"></i>Cobrar Ticket <span class="text-warning" id="pago-ticket-id"></span>
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="text-center mb-4">
                     <span class="text-muted small fw-semibold text-uppercase">Total a Pagar</span>
-                    <h1 class="fw-extrabold text-white mb-0 font-monospace" style="font-size: 3rem;">$<span id="pago-total">0.00</span></h1>
-                    <span class="badge bg-dark border border-secondary px-3 py-1 mt-1 rounded-pill">Orden #<span id="pago-id"></span></span>
+                    <h1 class="fw-extrabold text-dark mb-0 font-monospace" style="font-size: 3rem;">$<span id="pago-total">0.00</span></h1>
+                    <span class="badge bg-secondary text-white px-3 py-1 mt-1 rounded-pill">Orden #<span id="pago-id"></span></span>
                 </div>
                 
                 <!-- METODOS DE PAGO -->
@@ -1087,16 +935,16 @@
                 </div>
 
                 <!-- COBRO POR MARCA / SEPARADO (DISCRETO) -->
-                <div id="split-payment-section" class="mb-3 bg-dark p-3 rounded-3 border border-secondary" style="display: none;">
+                <div id="split-payment-section" class="mb-3 bg-light p-3 rounded-3 border" style="display: none;">
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-white-50 small fw-bold"><i class="fa-solid fa-arrows-split-up-and-left me-1 text-warning"></i> Cobrar por Marca / Separado</span>
+                        <span class="text-dark small fw-bold"><i class="fa-solid fa-arrows-split-up-and-left me-1 text-warning"></i> Cobrar por Marca / Separado</span>
                         <div class="form-check form-switch m-0">
                             <input class="form-check-input" type="checkbox" id="toggle-split-payment" onchange="toggleSplitPaymentView()">
                         </div>
                     </div>
                     
-                    <div id="split-brands-container" style="display: none;" class="mt-3 pt-3 border-top border-secondary">
-                        <p class="text-white-50 small mb-2">Selecciona la marca a cobrar:</p>
+                    <div id="split-brands-container" style="display: none;" class="mt-3 pt-3 border-top">
+                        <p class="text-muted small mb-2">Selecciona la marca a cobrar:</p>
                         <div class="d-flex gap-2">
                             <button id="btn-split-dl" class="btn btn-outline-danger btn-sm flex-fill fw-bold py-2" onclick="selectSplitBrand('don_lomito')">
                                 Don Lomito
@@ -1109,9 +957,9 @@
                 </div>
                 
                 <!-- CALCULADORA DE CAMBIO EFECTIVO -->
-                <div id="calc-efectivo" class="bg-dark p-3 rounded-3 mb-3 border border-secondary">
-                    <label class="form-label small fw-bold text-secondary mb-2"><i class="fa-solid fa-calculator me-1"></i>Efectivo Recibido</label>
-                    <input type="number" id="monto-recibido" class="form-control form-control-lg text-end font-monospace fw-bold mb-3 bg-black border-secondary text-white" placeholder="0.00" oninput="calcularCambio()">
+                <div id="calc-efectivo" class="bg-light p-3 rounded-3 mb-3 border">
+                    <label class="form-label small fw-bold text-dark mb-2"><i class="fa-solid fa-calculator me-1"></i>Efectivo Recibido</label>
+                    <input type="number" id="monto-recibido" class="form-control form-control-lg text-end font-monospace fw-bold mb-3" placeholder="0.00" oninput="calcularCambio()">
                     
                     <!-- Billetes Rápidos -->
                     <div class="row g-2 mb-3">
@@ -1127,17 +975,17 @@
                     </div>
                     
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold text-secondary">Cambio a Entregar:</span>
+                        <span class="fw-bold text-dark">Cambio a Entregar:</span>
                         <h2 class="text-success mb-0 fw-extrabold font-monospace">$<span id="monto-cambio">0.00</span></h2>
                     </div>
                 </div>
 
                 <!-- CAMPO DE REFERENCIA DINÁMICO (OBLIGATORIO) -->
-                <div id="wrapper-referencia-pago" class="bg-dark p-3 rounded-3 mb-3 border border-secondary" style="display: none;">
-                    <label class="form-label small fw-bold text-secondary mb-2" id="label-referencia-pago">
+                <div id="wrapper-referencia-pago" class="bg-light p-3 rounded-3 mb-3 border" style="display: none;">
+                    <label class="form-label small fw-bold text-dark mb-2" id="label-referencia-pago">
                         <i class="fa-solid fa-receipt me-1"></i> Número de Referencia
                     </label>
-                    <input type="text" id="referencia-pago-input" class="form-control text-white bg-black border-secondary font-monospace" placeholder="Ingresar referencia del voucher">
+                    <input type="text" id="referencia-pago-input" class="form-control font-monospace" placeholder="Ingresar referencia del voucher">
                     <div class="form-text text-danger small mt-1" id="error-referencia-pago" style="display: none;">
                         Este número de referencia es obligatorio para registrar el cobro.
                     </div>
@@ -1180,101 +1028,9 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.style.borderColor = color;
     });
 
-    // Guardar el estado inicial de las órdenes activas en el POS para sincronización
-    document.querySelectorAll('.ticket-card').forEach(card => {
-        const idTag = card.querySelector('[id^="items-data-"]');
-        if (idTag) {
-            const id = idTag.id.replace('items-data-', '');
-            const estado = card.dataset.estado || '';
-            currentOrdersState[id] = estado;
-        }
-    });
-
     // Cargar el carrito guardado en sessionStorage (si existe)
     cargarCarritoSession();
-
-    // Iniciar Polling de sincronización POS cada 5 segundos
-    setInterval(checkOrdersSync, 5000);
 });
-
-// --- SINCRONIZACIÓN AUTOMÁTICA EN TIEMPO REAL CON COCO/KDS ---
-async function checkOrdersSync() {
-    if (isCartActive) return;
-    if (isEditingOrder) return;
-    try {
-        const r = await fetch(`/api/active_orders_status?_=${Date.now()}`);
-        if (!r.ok) return;
-        const serverState = await r.json();
-        
-        let outOfSync = false;
-        const localKeys = Object.keys(currentOrdersState);
-        const serverKeys = Object.keys(serverState);
-        
-        if (localKeys.length !== serverKeys.length) {
-            outOfSync = true;
-        } else {
-            for (let id of localKeys) {
-                if (!serverState[id]) {
-                    outOfSync = true;
-                    break;
-                }
-                // Normalizar estados para comparar
-                const localVal = currentOrdersState[id].replace(/_/g, ' ').toUpperCase();
-                const serverVal = serverState[id].replace('_Cocina', '').replace(/_/g, ' ').toUpperCase();
-                if (localVal !== serverVal) {
-                    outOfSync = true;
-                    break;
-                }
-            }
-        }
-        
-        if (outOfSync) {
-            console.log("Cambios en cocina detectados. Sincronizando panel de cuentas activas...");
-            const response = await fetch(`/?_=${Date.now()}`);
-            if (response.ok) {
-                const htmlText = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, 'text/html');
-                const newPanel = doc.getElementById('cuentas-activas-panel');
-                if (newPanel) {
-                    document.getElementById('cuentas-activas-panel').innerHTML = newPanel.innerHTML;
-                    
-                    // Re-ejecutar los scripts inline que formatean los resúmenes de items
-                    document.querySelectorAll('#cuentas-activas-panel script').forEach(script => {
-                        const newScript = document.createElement('script');
-                        newScript.textContent = script.textContent;
-                        script.parentNode.replaceChild(newScript, script);
-                    });
-
-                    // Actualizar el estado local de las órdenes
-                    currentOrdersState = {};
-                    document.querySelectorAll('.ticket-card').forEach(card => {
-                        const idTag = card.querySelector('[id^="items-data-"]');
-                        if (idTag) {
-                            const id = idTag.id.replace('items-data-', '');
-                            const estado = card.dataset.estado || '';
-                            currentOrdersState[id] = estado;
-                        }
-                    });
-
-                    // Mantener filtros activos si los hay
-                    actualizarContadoresFiltros();
-                    const activeFilterBtn = document.querySelector('.btn-group[role="group"] .btn.active');
-                    if (activeFilterBtn) {
-                        const filterId = activeFilterBtn.id;
-                        if (filterId === 'btn-filter-pending-pay') {
-                            filtrarCuentas('pending-pay');
-                        } else {
-                            filtrarCuentas('all');
-                        }
-                    }
-                }
-            }
-        }
-    } catch(e) {
-        console.error("Error sincronizando estados de comanda:", e);
-    }
-}
 
 // --- VARIABLES DE ESTADO DE FILTRADO ---
 let categoriaActivaDl = null;
@@ -1631,7 +1387,7 @@ function actualizarCarritoUI() {
     if (carrito.length === 0) {
         contenedor.innerHTML = `
             <div class="text-center py-5 text-muted">
-                <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-white-50 opacity-25"></i>
+                <i class="fa-solid fa-basket-shopping fa-3x mb-3 text-muted opacity-50"></i>
                 <p class="mb-0 fw-medium">El pedido está vacío</p>
                 <small>Selecciona un producto del menú para comenzar</small>
             </div>`;
@@ -1651,14 +1407,14 @@ function actualizarCarritoUI() {
             
             div.innerHTML = `
                 <div class="cart-item-header">
-                    <span class="text-white">${item.nombre}</span>
-                    <span class="font-monospace text-white">$${itemTotal.toFixed(2)}</span>
+                    <span class="fw-bold text-dark">${item.nombre}</span>
+                    <span class="font-monospace fw-bold text-dark">$${itemTotal.toFixed(2)}</span>
                 </div>
                 ${labelMods}
                 <div class="d-flex justify-content-between align-items-center mt-2">
                     <div class="qty-controls">
                         <button class="btn-qty" onclick="cambiarCantidad(${index}, -1)"><i class="fa-solid fa-minus"></i></button>
-                        <span class="item-qty-badge text-white">${item.cantidad}</span>
+                        <span class="item-qty-badge text-dark">${item.cantidad}</span>
                         <button class="btn-qty" onclick="cambiarCantidad(${index}, 1)"><i class="fa-solid fa-plus"></i></button>
                     </div>
                     <button class="btn-remove-item" onclick="quitarDelCarrito(${index})">
@@ -1689,9 +1445,8 @@ function quitarDelCarrito(index) {
 }
 
 // --- ENVÍO DE PEDIDO ---
-// --- ENVÍO DE PEDIDO ---
-async function enviarPedido() {
-    if(carrito.length === 0) {
+function iniciarPagoPedido() {
+    if (carrito.length === 0) {
         alert("El pedido está vacío. Agrega ítems antes de enviar.");
         return;
     }
@@ -1718,47 +1473,48 @@ async function enviarPedido() {
         ticketId = `Domicilio: ${inputTicketVal} | Tel: ${telefono || 'N/A'} | Dir: ${direccion}`;
     }
 
-    // --- COMPARACIÓN Y AGREGAR BANDERAS DE NUEVO / MODIFICADO (KDS ALERTS) ---
-    if (editandoOrdenObjeto && editandoOrdenObjeto.items) {
-        carrito.forEach(item => {
-            const getModsKey = (mods) => JSON.stringify((mods || []).map(m => typeof m === 'object' ? m.nombre : m).sort());
-            const itemKey = item.nombre + getModsKey(item.mods) + item.negocio;
-            
-            const origItem = editandoOrdenObjeto.items.find(orig => {
-                const origKey = orig.nombre + getModsKey(orig.mods) + orig.negocio;
-                return origKey === itemKey;
-            });
-            
-            if (origItem) {
-                const prevQty = origItem.cantidad || 1;
-                const newQty = item.cantidad || 1;
-                if (newQty > prevQty) {
-                    item.is_modified = true;
-                    item.original_qty = origItem.original_qty || prevQty;
-                } else {
-                    if (origItem.is_new) {
-                        item.is_new = true;
-                    } else if (origItem.is_modified) {
-                        item.is_modified = true;
-                        item.original_qty = origItem.original_qty;
-                    }
-                }
-            } else {
-                item.is_new = true;
-            }
-        });
+    const total = parseFloat(document.getElementById('total-carrito').innerText);
+    
+    ordenAPagar = { isCart: true, total: total, ticketId: ticketId };
+    
+    document.getElementById('pago-id').innerText = 'Nuevo Pedido';
+    document.getElementById('pago-ticket-id').innerText = ticketId;
+    document.getElementById('pago-total').innerText = total.toFixed(2);
+    
+    document.getElementById('monto-recibido').value = '';
+    document.getElementById('monto-cambio').innerText = '0.00';
+    
+    const splitSec = document.getElementById('split-payment-section');
+    if (splitSec) splitSec.style.display = 'none';
+    
+    const splitContainer = document.getElementById('split-brands-container');
+    if (splitContainer) splitContainer.style.display = 'none';
+    
+    seleccionarMetodo('Efectivo');
+    if (modalPagoInstance) {
+        modalPagoInstance.show();
     }
+}
 
-    // Guardar referencias y vaciar inmediatamente la UI para no bloquear al usuario
+async function confirmarPagoPedido(metodo, referencia) {
+    let ticketId = ordenAPagar.ticketId;
+    
     const dlItems = [...carrito.filter(item => item.negocio === 'don_lomito')];
     const miItems = [...carrito.filter(item => item.negocio === 'mistun')];
-    const tempEditObj = editandoOrdenObjeto;
     
+    // Cambiar estado visual del botón temporalmente
+    const sendBtn = document.querySelector('button[onclick="iniciarPagoPedido()"]');
+    let origBtnHtml = "";
+    if (sendBtn) {
+        origBtnHtml = sendBtn.innerHTML;
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i> Procesando...`;
+    }
+
     // Limpiar carrito local y almacenamiento de sesión
     carrito = [];
     editandoOrdenObjeto = null;
     
-    // Limpiar campos de texto del formulario
     document.getElementById('nombre-mesa-ticket').value = '';
     const dirInput = document.getElementById('direccion-delivery');
     const telInput = document.getElementById('telefono-delivery');
@@ -1772,22 +1528,12 @@ async function enviarPedido() {
     sessionStorage.removeItem('telefonoDelivery');
     
     actualizarCarritoUI();
-
-    // Cambiar estado visual del botón temporalmente
-    const sendBtn = document.querySelector('button[onclick="enviarPedido()"]');
-    let origBtnHtml = "";
-    if (sendBtn) {
-        origBtnHtml = sendBtn.innerHTML;
-        sendBtn.disabled = true;
-        sendBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-2"></i> Enviando...`;
+    if (modalPagoInstance) {
+        modalPagoInstance.hide();
     }
-
+    
     const promises = [];
     
-    if (tempEditObj && tempEditObj.ticket_id) {
-        promises.push(fetch(`/reemplazar_grupo_ordenes/${tempEditObj.ticket_id}`, { method: 'POST' }));
-    }
-
     if (dlItems.length > 0) {
         promises.push(fetch('/crear_orden', {
             method: 'POST', 
@@ -1797,7 +1543,10 @@ async function enviarPedido() {
                 negocio: 'don_lomito', 
                 tipo_servicio: tipoServicio, 
                 items: dlItems, 
-                total: dlItems.reduce((sum, item) => sum + (item.totalItem * item.cantidad), 0).toFixed(2)
+                total: dlItems.reduce((sum, item) => sum + (item.totalItem * item.cantidad), 0).toFixed(2),
+                estado_pago: 'Pagada',
+                metodo_pago: metodo,
+                referencia: referencia
             })
         }));
     }
@@ -1811,28 +1560,29 @@ async function enviarPedido() {
                 negocio: 'mistun', 
                 tipo_servicio: tipoServicio, 
                 items: miItems, 
-                total: miItems.reduce((sum, item) => sum + (item.totalItem * item.cantidad), 0).toFixed(2)
+                total: miItems.reduce((sum, item) => sum + (item.totalItem * item.cantidad), 0).toFixed(2),
+                estado_pago: 'Pagada',
+                metodo_pago: metodo,
+                referencia: referencia
             })
         }));
     }
-
-    // Ejecutar peticiones en segundo plano silenciosamente
-    Promise.all(promises)
-        .then(() => {
-            if (sendBtn) {
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = origBtnHtml;
-            }
-            // Recarga silenciosa en segundo plano para sincronizar el panel lateral de cuentas
-            location.reload();
-        })
-        .catch(error => {
-            console.error('Error enviando pedidos:', error);
-            if (sendBtn) {
-                sendBtn.disabled = false;
-                sendBtn.innerHTML = origBtnHtml;
-            }
-        });
+    
+    try {
+        await Promise.all(promises);
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = origBtnHtml;
+        }
+        location.reload();
+    } catch (error) {
+        console.error('Error enviando pedidos:', error);
+        alert("Hubo un error al enviar el pedido. Por favor intente de nuevo.");
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = origBtnHtml;
+        }
+    }
 }
 
 function editarOrden(id, ticket_id, totalOrden, tipo, negocio, estado) {
@@ -2163,6 +1913,11 @@ function procesarPago() {
             refInput.focus();
             return;
         }
+    }
+    
+    if (ordenAPagar.isCart) {
+        confirmarPagoPedido(metodoSeleccionado, refVal);
+        return;
     }
     
     const payload = {

@@ -39,25 +39,34 @@
             min-height: 100vh;
         }
 
-        .kds-navbar {
+        /* Navbar styling */
+        .navbar-custom {
             background-color: #ffffff;
-            border-bottom: 2px solid var(--border-kds);
-            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
-        
-        .kds-title {
-            font-size: 1.6rem;
+
+        .navbar-brand {
             font-weight: 800;
+            font-size: 1.5rem;
+            color: #0f172a !important;
             letter-spacing: -0.5px;
-            text-transform: uppercase;
         }
-        
-        .brand-badge {
-            font-size: 0.95rem;
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
+
+        .nav-link-custom {
+            font-weight: 600;
+            color: #64748b !important;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .nav-link-custom:hover, .nav-link-custom.active {
+            background-color: #f1f5f9;
+            color: #0f172a !important;
         }
 
         .order-card {
@@ -266,6 +275,16 @@
             animation: subtle-flash 1s infinite alternate;
         }
 
+        @keyframes cancel-flash {
+            0% { background-color: #ffffff; border-color: #ef4444; }
+            50% { background-color: #fee2e2; border-color: #b91c1c; }
+            100% { background-color: #ffffff; border-color: #ef4444; }
+        }
+        .order-card.cancelled-order-card {
+            border: 3px solid var(--danger-color) !important;
+            animation: cancel-flash 1.5s infinite;
+        }
+
         /* MEDIA QUERIES PARA PANTALLAS PEQUEÑAS / TV (FIRE TV STICK) */
         @media (max-width: 1024px) {
             .kds-navbar {
@@ -324,19 +343,27 @@
 </head>
 <body>
 
-<nav class="kds-navbar">
-    <div class="container-fluid d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-3">
-            <i class="fa-solid fa-desktop fa-2x text-primary"></i>
-            <span class="kds-title">Control de Producción</span>
-        </div>
-        <div>
-            <span class="brand-badge {{ 'bg-danger text-white' if negocio == 'don_lomito' else 'bg-success text-white' }}">
-                {{ negocio.replace('_', ' ').upper() }}
+    <!-- NAV BAR -->
+    <nav class="navbar navbar-expand-lg navbar-custom mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <i class="fa-solid fa-desktop text-primary me-2"></i>KDS {{ negocio.replace('_', ' ').upper() }}
             </span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <div class="navbar-nav">
+                    <a href="/" class="nav-link-custom"><i class="fa-solid fa-cash-register me-1"></i>POS</a>
+                    <a href="/pedidos" class="nav-link-custom"><i class="fa-solid fa-truck-ramp-box me-1"></i>Gestor</a>
+                    <a href="/kds/don_lomito" class="nav-link-custom {{ 'active' if negocio == 'don_lomito' else '' }}"><i class="fa-solid fa-pepper-hot me-1 text-danger"></i>KDS Lomito</a>
+                    <a href="/kds/mistun" class="nav-link-custom {{ 'active' if negocio == 'mistun' else '' }}"><i class="fa-solid fa-mug-hot me-1 text-success"></i>KDS Mistun</a>
+                    <a href="/cierre_caja" class="nav-link-custom"><i class="fa-solid fa-vault me-1"></i>Cierre de Caja</a>
+                    <a href="/admin" class="nav-link-custom"><i class="fa-solid fa-gears me-1"></i>Admin</a>
+                </div>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
 <div class="container-fluid py-4 px-4">
     <div id="orders-container" class="row">
@@ -532,6 +559,16 @@
             }
 
             switch (order.estado) {
+                case 'Cancelada':
+                    nextStatusBtnHtml = `<button class="btn btn-kds-action btn-danger w-100 py-3 fw-bold text-white animate-pulse" onclick="updateOrderStatus(${order.id}, 'Descartada')"><i class="fa-solid fa-circle-check me-1"></i> Entendido / Descartar</button>`;
+                    timerHtml = `<div class="timer-badge danger"><i class="fa-solid fa-ban me-1"></i> CANCELADO</div>`;
+                    cardColorClass = 'cancelled-order-card';
+                    milestonesHtml = `
+                        <div class="mt-2 pt-2 border-top border-light-custom text-danger fw-bold small">
+                            <div class="animate-pulse text-uppercase"><i class="fa-solid fa-triangle-exclamation me-1"></i> DETENER PREPARACIÓN</div>
+                        </div>
+                    `;
+                    break;
                 case 'Enviada_Cocina':
                     nextStatusBtnHtml = `<button class="btn btn-kds-action btn-start w-100 py-3" onclick="updateOrderStatus(${order.id}, 'Preparando')"><i class="fa-solid fa-fire-burner me-1"></i> Iniciar Preparación</button>`;
                     timerHtml = `<div class="timer-badge ${timeColorClass}"><i class="fa-regular fa-clock"></i> <span class="active-timer" data-estado="Enviada_Cocina" data-start="${order.creado_at || order.fecha_creacion}">${formatTime(getSecondsElapsed(order.creado_at || order.fecha_creacion))}</span></div>`;
@@ -587,6 +624,12 @@
             const changeBannerHtml = hasChanges ? `
                 <div class="bg-warning text-dark text-center py-2 fw-bold animate-pulse" style="font-size: 0.85rem; border-radius: 4px; margin-bottom: 12px; border: 1px solid #d97706;">
                     <i class="fa-solid fa-triangle-exclamation me-1"></i> [⚠️ CAMBIO / AGREGADO]
+                </div>
+            ` : '';
+
+            const cancelBannerHtml = order.estado === 'Cancelada' ? `
+                <div class="bg-danger text-white text-center py-2.5 fw-bold animate-pulse" style="font-size: 0.9rem; border-radius: 4px; margin-bottom: 12px; border: 1px solid #b91c1c;">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i> DETENER PREPARACIÓN
                 </div>
             ` : '';
 
@@ -655,6 +698,7 @@
                             ${milestonesHtml}
                         </div>
                         <div class="order-body">
+                            ${cancelBannerHtml}
                             ${changeBannerHtml}
                             <ul class="item-list">
                                 ${itemsHtml}

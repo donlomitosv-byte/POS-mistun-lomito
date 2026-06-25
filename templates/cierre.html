@@ -112,32 +112,92 @@
         .badge-dl { background-color: var(--dl-primary); color: white; }
         .badge-mi { background-color: var(--mi-primary); color: white; }
 
+        .badge-option {
+            background-color: #eae9e4;
+            color: #4c4e56;
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-right: 4px;
+            display: inline-block;
+            margin-top: 2px;
+        }
+
         .list-group-custom .list-group-item {
             padding: 16px;
             border-color: var(--border-color);
             background: white;
             font-weight: 600;
         }
+
+        /* Navbar styling */
+        .navbar-custom {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #0f172a !important;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-link-custom {
+            font-weight: 600;
+            color: #64748b !important;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .nav-link-custom:hover, .nav-link-custom.active {
+            background-color: #f1f5f9;
+            color: #0f172a !important;
+        }
     </style>
 </head>
 <body class="pb-5">
 
-<div class="header-panel">
-    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-        <div>
-            <h2 class="fw-bold mb-0"><i class="fa-solid fa-vault me-2 text-secondary"></i>Cierre de Caja</h2>
-            <p class="text-muted mb-0 small">Reporte de facturación y resumen de ventas: <strong>{{ hoy }}</strong></p>
-        </div>
-        <div class="d-flex align-items-center gap-2">
-            <div class="btn-group">
-                <a href="/cierre_caja?periodo=dia" class="btn btn-{{ 'primary' if periodo == 'dia' else 'outline-secondary' }} fw-bold">Día</a>
-                <a href="/cierre_caja?periodo=semana" class="btn btn-{{ 'primary' if periodo == 'semana' else 'outline-secondary' }} fw-bold">Semana</a>
-                <a href="/cierre_caja?periodo=mes" class="btn btn-{{ 'primary' if periodo == 'mes' else 'outline-secondary' }} fw-bold">Mes</a>
-                <a href="/cierre_caja?periodo=ano" class="btn btn-{{ 'primary' if periodo == 'ano' else 'outline-secondary' }} fw-bold">Año</a>
+    <!-- NAV BAR -->
+    <nav class="navbar navbar-expand-lg navbar-custom mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <i class="fa-solid fa-vault text-primary me-2"></i>CIERRE DE CAJA
+            </span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <div class="navbar-nav">
+                    <a href="/" class="nav-link-custom"><i class="fa-solid fa-cash-register me-1"></i>POS</a>
+                    <a href="/pedidos" class="nav-link-custom"><i class="fa-solid fa-truck-ramp-box me-1"></i>Gestor</a>
+                    <a href="/kds/don_lomito" class="nav-link-custom" target="_blank"><i class="fa-solid fa-pepper-hot me-1 text-danger"></i>KDS Lomito</a>
+                    <a href="/kds/mistun" class="nav-link-custom" target="_blank"><i class="fa-solid fa-mug-hot me-1 text-success"></i>KDS Mistun</a>
+                    <a href="/cierre_caja" class="nav-link-custom active"><i class="fa-solid fa-vault me-1"></i>Cierre de Caja</a>
+                    <a href="/admin" class="nav-link-custom"><i class="fa-solid fa-gears me-1"></i>Admin</a>
+                </div>
             </div>
-            <a href="/" class="btn btn-dark px-4 py-2 rounded-pill fw-bold ms-md-2">
-                <i class="fa-solid fa-chevron-left me-1"></i> Panel de Ventas
-            </a>
+        </div>
+    </nav>
+
+<div class="container mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 bg-white p-3 rounded-3 border">
+        <div>
+            <h4 class="fw-bold mb-0">Resumen de Ventas</h4>
+            <p class="text-muted mb-0 small">Reporte de facturación para el período seleccionado: <strong>{{ hoy }}</strong></p>
+        </div>
+        <div class="btn-group">
+            <a href="/cierre_caja?periodo=dia" class="btn btn-{{ 'primary' if periodo == 'dia' else 'outline-secondary' }} fw-bold">Día</a>
+            <a href="/cierre_caja?periodo=semana" class="btn btn-{{ 'primary' if periodo == 'semana' else 'outline-secondary' }} fw-bold">Semana</a>
+            <a href="/cierre_caja?periodo=mes" class="btn btn-{{ 'primary' if periodo == 'mes' else 'outline-secondary' }} fw-bold">Mes</a>
+            <a href="/cierre_caja?periodo=ano" class="btn btn-{{ 'primary' if periodo == 'ano' else 'outline-secondary' }} fw-bold">Año</a>
         </div>
     </div>
 </div>
@@ -195,12 +255,13 @@
                             <th>Ticket / Mesa / Consumos</th>
                             <th>Marca</th>
                             <th>Pago</th>
-                            <th class="text-end pe-3">Monto Total</th>
+                            <th class="text-end">Monto Total</th>
+                            <th class="text-center">Acción</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for o in ordenes %}
-                        <tr>
+                        <tr id="row-orden-{{ o.id }}">
                             <td class="ps-3 font-monospace fw-bold">#{{ o.id }}</td>
                             <td>
                                 <div class="fw-bold text-dark" style="font-size: 1.05rem;">
@@ -237,11 +298,16 @@
                                     <div class="small text-muted font-monospace mt-1" style="font-size: 0.78rem;"><i class="fa-solid fa-receipt me-1"></i>Ref: {{ o.referencia }}</div>
                                 {% endif %}
                             </td>
-                            <td class="text-end pe-3 fw-bold font-monospace text-dark fs-5">${{ "%.2f"|format(o.total) }}</td>
+                            <td class="text-end fw-bold font-monospace text-dark fs-5">${{ "%.2f"|format(o.total) }}</td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-danger px-3 py-1.5 rounded-pill fw-bold" onclick="eliminarOrdenAjax({{ o.id }}, this)">
+                                    <i class="fa-solid fa-trash me-1"></i> Eliminar
+                                </button>
+                            </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="5" class="text-center py-5 text-muted">
+                            <td colspan="6" class="text-center py-5 text-muted">
                                 <i class="fa-solid fa-folder-open fa-2x mb-2 text-secondary"></i>
                                 <p class="mb-0">No se registran transacciones pagadas en este período.</p>
                             </td>
@@ -274,7 +340,118 @@
             </div>
         </div>
     </div>
+
+    <!-- TABLA DE PRODUCTOS REGISTRADOS (CATÁLOGO DE PRODUCTOS AGRUPADOS) -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card stat-card">
+                <h5 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-list me-2 text-secondary"></i>Catálogo de Productos</h5>
+                
+                {% for negocio, categorias in productos_agrupados.items() %}
+                    <h4 class="mt-4 mb-3 text-uppercase fw-bold {% if negocio == 'don_lomito' %}text-danger{% else %}text-success{% endif %}">
+                        <i class="fa-solid {% if negocio == 'don_lomito' %}fa-pepper-hot{% else %}fa-mug-hot{% endif %} me-2"></i>
+                        {{ negocio.replace('_', ' ') }}
+                    </h4>
+                    
+                    {% for categoria, prods in categorias.items() %}
+                        <div class="card mb-4 border shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <span class="fw-bold text-secondary text-uppercase" style="font-size: 0.85rem;">
+                                    <i class="fa-solid fa-folder me-2 text-warning"></i>{{ categoria }}
+                                </span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40%;">Producto</th>
+                                            <th style="width: 20%;">Precio Base</th>
+                                            <th style="width: 40%;">Adicionales / Modificadores</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for p in prods %}
+                                        <tr>
+                                            <td><span class="fw-bold text-dark">{{ p.nombre }}</span></td>
+                                            <td><span class="fw-bold font-monospace text-primary">${{ "%.2f"|format(p.precio_base) }}</span></td>
+                                            <td>
+                                                {% for o in p.opciones %}
+                                                    <span class="badge-option">
+                                                        {{ o.nombre }} (+${{ "%.2f"|format(o.precio_extra) }})
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted small">Sin extras</span>
+                                                {% endfor %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5 text-muted border rounded">
+                        <i class="fa-solid fa-triangle-exclamation fa-2x mb-2 text-warning"></i>
+                        <p class="mb-0">No se han registrado productos en el catálogo.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+async function eliminarOrdenAjax(ordenId, btnElement) {
+    if (!confirm(`¿Estás seguro de que deseas ELIMINAR DEFINITIVAMENTE la orden #${ordenId}?\nEsta acción es irreversible y afectará el balance de caja.`)) {
+        return;
+    }
+    
+    // Deshabilitar botón para prevenir doble submit
+    btnElement.disabled = true;
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Borrando...`;
+    
+    try {
+        const response = await fetch(`/api/eliminar_orden/${ordenId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            // Remover la fila de la tabla
+            const row = document.getElementById(`row-orden-${ordenId}`);
+            if (row) {
+                row.style.transition = 'all 0.3s ease';
+                row.style.opacity = '0';
+                setTimeout(() => {
+                    row.remove();
+                    // Si no quedan más filas, mostrar estado vacío
+                    const tbody = document.querySelector('.table-custom tbody');
+                    if (tbody && tbody.querySelectorAll('tr[id^="row-orden-"]').length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-folder-open fa-2x mb-2 text-secondary"></i>
+                                    <p class="mb-0">No se registran transacciones pagadas en este período.</p>
+                                </td>
+                            </tr>`;
+                    }
+                }, 300);
+            }
+        } else {
+            alert("Error al intentar eliminar la orden de la base de datos.");
+            btnElement.disabled = false;
+            btnElement.innerHTML = originalText;
+        }
+    } catch (error) {
+        console.error("Error al eliminar orden:", error);
+        alert("Error de conexión. No se pudo eliminar la orden.");
+        btnElement.disabled = false;
+        btnElement.innerHTML = originalText;
+    }
+}
+</script>
 
 </body>
 </html>

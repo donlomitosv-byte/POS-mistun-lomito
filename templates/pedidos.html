@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Pedidos - Despacho</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            
+            --dl-primary: #f26c1b;
+            --dl-light: rgba(242, 108, 27, 0.08);
+            --dl-border: rgba(242, 108, 27, 0.2);
+            
+            --mi-primary: #76a035;
+            --mi-light: rgba(118, 160, 53, 0.08);
+            --mi-border: rgba(118, 160, 53, 0.2);
+            
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.05);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.25s ease;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* Navbar styling */
+        .navbar-custom {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #0f172a !important;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-link-custom {
+            font-weight: 600;
+            color: #64748b !important;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .nav-link-custom:hover, .nav-link-custom.active {
+            background-color: #f1f5f9;
+            color: #0f172a !important;
+        }
+
+        /* Card styles */
+        .global-ticket-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .global-ticket-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .ticket-header {
+            background-color: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem;
+        }
+
+        .ticket-body {
+            padding: 1.25rem;
+            flex-grow: 1;
+        }
+
+        .sub-order-card {
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+        }
+
+        .sub-order-card.brand-dl {
+            border-left: 4px solid var(--dl-primary);
+            background-color: var(--dl-light);
+            border-color: var(--dl-border);
+        }
+
+        .sub-order-card.brand-mi {
+            border-left: 4px solid var(--mi-primary);
+            background-color: var(--mi-light);
+            border-color: var(--mi-border);
+        }
+
+        /* Badges */
+        .status-badge {
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            padding: 0.35rem 0.65rem;
+            border-radius: 50rem;
+            letter-spacing: 0.5px;
+        }
+
+        .status-ready {
+            background-color: #dcfce7;
+            color: #15803d;
+            animation: pulse-green 2s infinite;
+        }
+
+        .status-preparing {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-received {
+            background-color: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-cancelled {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
+            }
+            70% {
+                box-shadow: 0 0 0 8px rgba(22, 163, 74, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+            }
+        }
+
+        /* Order items layout */
+        .item-row {
+            padding: 0.35rem 0;
+            font-size: 0.9rem;
+            border-bottom: 1px dashed rgba(0,0,0,0.05);
+        }
+
+        .item-row:last-child {
+            border-bottom: none;
+        }
+
+        .item-mods {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-left: 1.25rem;
+            font-style: italic;
+        }
+
+        /* Button controls */
+        .btn-archive-ticket {
+            font-weight: 700;
+            padding: 0.75rem;
+            font-size: 0.95rem;
+            border-radius: var(--radius-md);
+            transition: var(--transition);
+        }
+
+        .btn-anular {
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.25rem 0.6rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .empty-state {
+            padding: 5rem 2rem;
+            text-align: center;
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV BAR -->
+    <nav class="navbar navbar-expand-lg navbar-custom mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <i class="fa-solid fa-square-poll-vertical text-primary me-2"></i>DESPACHO & GESTOR
+            </span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <div class="navbar-nav">
+                    <a href="/" class="nav-link-custom"><i class="fa-solid fa-cash-register me-1"></i>POS</a>
+                    <a href="/pedidos" class="nav-link-custom active"><i class="fa-solid fa-truck-ramp-box me-1"></i>Gestor</a>
+                    <a href="/kds/don_lomito" class="nav-link-custom" target="_blank"><i class="fa-solid fa-pepper-hot me-1 text-danger"></i>KDS Lomito</a>
+                    <a href="/kds/mistun" class="nav-link-custom" target="_blank"><i class="fa-solid fa-mug-hot me-1 text-success"></i>KDS Mistun</a>
+                    <a href="/cierre_caja" class="nav-link-custom"><i class="fa-solid fa-vault me-1"></i>Cierre de Caja</a>
+                    <a href="/admin" class="nav-link-custom"><i class="fa-solid fa-gears me-1"></i>Admin</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN BODY -->
+    <div class="container-fluid px-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1">Pedidos Activos en Sala y Despacho</h2>
+                <p class="text-muted mb-0">Control de entregas e inmutabilidad de comanda.</p>
+            </div>
+            <div>
+                <span class="badge bg-secondary px-3 py-2 rounded-pill font-monospace" style="font-size: 0.95rem;">
+                    <i class="fa-solid fa-rotate fa-spin me-2"></i>Actualizando cada 5s
+                </span>
+            </div>
+        </div>
+
+        <!-- TICKETS CONTAINER GRID -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" id="grid-pedidos">
+            <!-- Dynamic loading -->
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUDIO NOTIFICATION FOR NEW OR READY TICKETS -->
+    <audio id="bell-sound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-84.wav" preload="auto"></audio>
+
+    <script>
+        let previousReadyState = new Set();
+        let isPerformingAction = false;
+
+        async function fetchActiveOrders() {
+            if (isPerformingAction) return;
+            try {
+                const res = await fetch(`/api/active_orders_detailed?_=${Date.now()}`);
+                if (!res.ok) return;
+                const orders = await res.json();
+
+                // Group orders by ticket_id
+                const groups = {};
+                orders.forEach(o => {
+                    if (!groups[o.ticket_id]) {
+                        groups[o.ticket_id] = [];
+                    }
+                    groups[o.ticket_id].push(o);
+                });
+
+                renderTickets(groups);
+                checkNewReadyStates(orders);
+            } catch (err) {
+                console.error("Error fetching orders:", err);
+            }
+        }
+
+        function renderTickets(groups) {
+            const container = document.getElementById('grid-pedidos');
+            const ticketIds = Object.keys(groups);
+
+            if (ticketIds.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-circle-check fa-4x text-success mb-3"></i>
+                            <h3 class="fw-bold">¡Todo al día!</h3>
+                            <p class="text-muted mb-0">No hay pedidos pendientes en despacho ni mesas activas.</p>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            let html = "";
+            ticketIds.forEach(tId => {
+                const groupOrders = groups[tId];
+                
+                // Calculate total and service type
+                let grandTotal = 0;
+                let isAllPaid = true;
+                let tipoServicio = groupOrders[0].tipo_servicio;
+                let horaCruce = groupOrders[0].hora_creacion;
+
+                groupOrders.forEach(o => {
+                    grandTotal += parseFloat(o.total);
+                    if (o.estado_pago !== 'Pagada') {
+                        isAllPaid = false;
+                    }
+                });
+
+                // Archive button configuration
+                let archiveBtnLabel = "Finalizar Ticket";
+                let archiveBtnIcon = "fa-circle-check";
+                let archiveBtnClass = "btn-primary";
+                
+                const sTypeLower = tipoServicio.toLowerCase();
+                if (sTypeLower.includes("comer")) {
+                    archiveBtnLabel = "Cliente se retiró";
+                    archiveBtnIcon = "fa-house-user";
+                    archiveBtnClass = "btn-warning text-dark";
+                } else if (sTypeLower.includes("llevar") || sTypeLower.includes("domicilio")) {
+                    archiveBtnLabel = "Pedido Entregado";
+                    archiveBtnIcon = "fa-truck-fast";
+                    archiveBtnClass = "btn-success text-white";
+                }
+
+                html += `
+                <div class="col">
+                    <div class="global-ticket-card shadow-sm">
+                        <!-- HEADER DE TARJETA GLOBAL -->
+                        <div class="ticket-header">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h4 class="fw-extrabold mb-0 text-dark">${tId}</h4>
+                                <span class="badge bg-dark px-2.5 py-1.5 font-monospace text-uppercase" style="font-size: 0.8rem;">
+                                    ${tipoServicio}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2 text-muted small fw-semibold">
+                                <span><i class="fa-solid fa-clock me-1"></i>${horaCruce}</span>
+                                <span>
+                                    ${isAllPaid ? 
+                                        '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1"><i class="fa-solid fa-circle-check me-1"></i>PAGADO</span>' : 
+                                        '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1"><i class="fa-solid fa-circle-exclamation me-1"></i>PENDIENTE DE PAGO</span>'
+                                    }
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- BODY DE TARJETA GLOBAL -->
+                        <div class="ticket-body">
+                            ${groupOrders.map(o => {
+                                let borderClass = o.negocio === 'don_lomito' ? 'brand-dl' : 'brand-mi';
+                                let statusClass = "";
+                                let statusLabel = o.estado;
+
+                                if (o.estado === 'Enviada_Cocina') {
+                                    statusClass = "status-received";
+                                    statusLabel = "Recibido";
+                                } else if (o.estado === 'Preparando') {
+                                    statusClass = "status-preparing";
+                                    statusLabel = "En Cocina";
+                                } else if (o.estado === 'Lista_Para_Servir') {
+                                    statusClass = "status-ready";
+                                    statusLabel = "¡Listo!";
+                                } else if (o.estado === 'Cancelada') {
+                                    statusClass = "status-cancelled";
+                                    statusLabel = "Cancelado";
+                                }
+
+                                return `
+                                <div class="sub-order-card ${borderClass}">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <span class="badge bg-secondary font-monospace">#${o.id}</span>
+                                            <span class="text-uppercase fw-bold ms-1" style="font-size: 0.85rem; color: ${o.negocio === 'don_lomito' ? 'var(--dl-primary)' : 'var(--mi-primary)'}">
+                                                ${o.negocio === 'don_lomito' ? 'LOMITO' : 'MISTUN'}
+                                            </span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="status-badge ${statusClass}">${statusLabel}</span>
+                                            ${o.estado !== 'Cancelada' ? `
+                                                <button class="btn btn-sm btn-outline-danger btn-anular" onclick="anularOrden(${o.id}, '${tId}')">
+                                                    <i class="fa-solid fa-ban me-1"></i>Anular
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="item-list mb-2">
+                                        ${o.items.map(item => `
+                                            <div class="item-row">
+                                                <div class="d-flex justify-content-between">
+                                                    <span class="fw-semibold">${item.cantidad}x ${item.nombre}</span>
+                                                    <span class="font-monospace text-muted">$${(item.totalItem * item.cantidad).toFixed(2)}</span>
+                                                </div>
+                                                ${item.mods && item.mods.length > 0 ? `
+                                                    <div class="item-mods">
+                                                        + ${item.mods.map(m => typeof m === 'object' ? m.nombre : m).join(', ')}
+                                                    </div>
+                                                ` : ''}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top border-secondary border-opacity-10 font-monospace">
+                                        <span class="text-muted small">Subtotal:</span>
+                                        <span class="fw-bold">$${parseFloat(o.total).toFixed(2)}</span>
+                                    </div>
+                                </div>
+                                `;
+                            }).join('')}
+
+                            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-secondary border-opacity-20">
+                                <span class="fw-bold text-uppercase" style="font-size: 0.9rem; color: var(--text-muted);">Total de Pedido:</span>
+                                <h3 class="mb-0 fw-extrabold font-monospace text-dark">$${grandTotal.toFixed(2)}</h3>
+                            </div>
+                        </div>
+
+                        <!-- FOOTER DE TARJETA GLOBAL: CIERRE DE CICLO -->
+                        <div class="p-3 border-top bg-light">
+                            <button class="btn ${archiveBtnClass} w-100 py-2.5 fw-bold btn-archive-ticket shadow-sm" onclick="archivarMesa('${tId}')">
+                                <i class="fa-solid ${archiveBtnIcon} me-2"></i>${archiveBtnLabel}
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function anularOrden(id, ticketId) {
+            if (!confirm(`¿Estás seguro de que deseas ANULAR la orden #${id} del ticket "${ticketId}"?\nEsta acción alertará a cocina inmediatamente.`)) {
+                return;
+            }
+            
+            isPerformingAction = true;
+            try {
+                const res = await fetch(`/api/cancelar_orden/${id}`, { method: 'POST' });
+                if (res.ok) {
+                    await fetchActiveOrders();
+                } else {
+                    alert("Error al anular la orden.");
+                }
+            } catch (err) {
+                console.error("Error canceling order:", err);
+            } finally {
+                isPerformingAction = false;
+            }
+        }
+
+        async function archivarMesa(ticketId) {
+            if (!confirm(`¿Deseas dar por finalizado el servicio y archivar la mesa/ticket: "${ticketId}"?`)) {
+                return;
+            }
+
+            isPerformingAction = true;
+            try {
+                const res = await fetch('/archivar_orden', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ticket_id: ticketId })
+                });
+                
+                if (res.ok) {
+                    await fetchActiveOrders();
+                } else {
+                    alert("Error al archivar la mesa.");
+                }
+            } catch (err) {
+                console.error("Error archiving table:", err);
+            } finally {
+                isPerformingAction = false;
+            }
+        }
+
+        function checkNewReadyStates(orders) {
+            let hasNewReady = false;
+            orders.forEach(o => {
+                if (o.estado === 'Lista_Para_Servir') {
+                    if (!previousReadyState.has(o.id)) {
+                        hasNewReady = true;
+                        previousReadyState.add(o.id);
+                    }
+                } else {
+                    previousReadyState.delete(o.id);
+                }
+            });
+
+            if (hasNewReady) {
+                const bell = document.getElementById('bell-sound');
+                if (bell) {
+                    bell.play().catch(e => console.log("Audio play blocked by browser policy"));
+                }
+            }
+        }
+
+        // Init polling
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchActiveOrders();
+            setInterval(fetchActiveOrders, 5000);
+        });
+    </script>
+</body>
+</html>

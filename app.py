@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_, and_
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 import json
 import os
 
@@ -21,6 +21,11 @@ else:
     app.config['SQLALCHEMY_ECHO'] = True
 
 db = SQLAlchemy(app)
+
+# --- TIMEZONE EL SALVADOR Helper ---
+def local_now():
+    # UTC-6 America/El_Salvador
+    return datetime.now(timezone(timedelta(hours=-6))).replace(tzinfo=None)
 
 # --- MODELOS ---
 class Producto(db.Model):
@@ -48,9 +53,9 @@ class Orden(db.Model):
     estado_pago = db.Column(db.String(20), default='Pendiente') # Pendiente, Pagada
     metodo_pago = db.Column(db.String(20))
     referencia = db.Column(db.String(100), nullable=True) # Campo para número de voucher / transferencia
-    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
-    fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    creado_at = db.Column(db.DateTime, default=datetime.utcnow)
+    fecha_creacion = db.Column(db.DateTime, default=local_now)
+    fecha_actualizacion = db.Column(db.DateTime, default=local_now, onupdate=local_now)
+    creado_at = db.Column(db.DateTime, default=local_now)
     preparacion_at = db.Column(db.DateTime, nullable=True)
     listo_at = db.Column(db.DateTime, nullable=True)
     estado_entrega = db.Column(db.String(30), default='Preparando') # Preparando, Listo, Entregado, Retirado
@@ -339,7 +344,7 @@ def crear_orden():
                 orden.estado = 'Enviada_Cocina'
             db.session.commit()
             return jsonify({"status": "updated", "id": orden.id})
-    else: # Es una nueva orden (o una parte de un pedido dividido)
+    else:
         nueva = Orden(
             ticket_id=ticket_id,
             negocio=data['negocio'],
@@ -347,7 +352,10 @@ def crear_orden():
             items_json=json.dumps(data['items']),
             total=float(data['total']),
             estado='Enviada_Cocina',
-            creado_at=datetime.utcnow()
+            estado_pago=data.get('estado_pago', 'Pagada'),
+            metodo_pago=data.get('metodo_pago', 'Efectivo'),
+            referencia=data.get('referencia'),
+            creado_at=local_now()
         )
         db.session.add(nueva)
         db.session.commit()
@@ -364,35 +372,70 @@ def reemplazar_grupo_ordenes(ticket_id):
 @app.route('/admin')
 def admin_panel():
     productos = Producto.query.all()
-    hoy = date.today()
-    fecha_inicio = datetime.combine(hoy, datetime.min.time())
-    ordenes_completadas = Orden.query.filter(
-        Orden.estado_pago == 'Pagada',
-        Orden.fecha_creacion >= fecha_inicio
-    ).all()
-    total_ventas = sum(o.total for o in ordenes_completadas)
-    date_today = hoy.strftime('%d/%m/%Y')
-    return render_template('admin.html', productos=productos, total_ventas=total_ventas, count_completadas=len(ordenes_completadas), date_today=date_today)
-
-@app.route('/admin/cerrar_caja', methods=['POST'])
-def admin_cerrar_caja():
-    hoy = date.today()
-    fecha_inicio = datetime.combine(hoy, datetime.min.time())
-    ordenes_completadas = Orden.query.filter(
-        Orden.estado_pago == 'Pagada',
-        Orden.fecha_creacion >= fecha_inicio
-    ).all()
-    total_ventas = sum(o.total for o in ordenes_completadas)
+    productos_agrupados = {}
+    for p in productos:
+        if p.negocio not in productos_agrupados:
+            productos_agrupados[p.negocio] = {}
+        if p.categoria not in productos_agrupados[p.negocio]:
+            productos_agrupados[p.negocio][p.categoria] = []
+        productos_agrupados[p.negocio][p.categoria].append(p)
+        
+    # Timezone El Salvador
+    tz_sv = timezone(timedelta(hours=-6))
+    hoy_sv = datetime.now(tz_sv).date()
+    fecha_inicio = datetime.combine(hoy_sv, datetime.min.time())
     
+    # Comprobar si existe un cierre de jornada posterior al inicio del día
+    cierre_filepath = os.path.join(app.instance_path, 'cierre_diario.txt')
+    if os.path.exists(cierre_filepath):
+        try:
+            with open(cierre_filepath, 'r') as f:
+                last_cierre_str = f.read().strip()
+                last_cierre = datetime.fromisoformat(last_cierre_str)
+                if last_cierre >= fecha_inicio:
+                    fecha_inicio = last_cierre
+        except Exception:
+            pass
+            
+    ordenes_completadas = Orden.query.filter(
+        Orden.estado_pago == 'Pagada',
+        Orden.fecha_creacion >= fecha_inicio,
+        Orden.estado.notin_(['Cancelada', 'Reemplazada', 'Descartada'])
+    ).all()
+    
+    total_ventas = sum(o.total for o in ordenes_completadas)
+    ventas_efectivo = sum(o.total for o in ordenes_completadas if o.metodo_pago == 'Efectivo')
+    ventas_tarjeta = sum(o.total for o in ordenes_completadas if o.metodo_pago == 'Tarjeta')
+    ventas_transferencia = sum(o.total for o in ordenes_completadas if o.metodo_pago == 'Transferencia')
+    
+    # Lista de órdenes de la jornada actual
+    ordenes_del_dia = Orden.query.filter(
+        Orden.fecha_creacion >= fecha_inicio,
+        Orden.estado.notin_(['Reemplazada'])
+    ).order_by(Orden.fecha_creacion.desc()).all()
+    
+    for o in ordenes_del_dia:
+        o.items_lista = json.loads(o.items_json)
+        
+    date_today = hoy_sv.strftime('%d/%m/%Y')
+    return render_template(
+        'admin.html', 
+        productos_agrupados=productos_agrupados, 
+        total_ventas=total_ventas, 
+        count_completadas=len(ordenes_completadas), 
+        date_today=date_today,
+        ventas_efectivo=ventas_efectivo,
+        ventas_tarjeta=ventas_tarjeta,
+        ventas_transferencia=ventas_transferencia,
+        ordenes_del_dia=ordenes_del_dia
+    )
+
+@app.route('/admin/cerrar_dia', methods=['POST'])
+@app.route('/admin/cerrar_caja', methods=['POST'])
+def admin_cerrar_dia():
+    # 1. Archivar/limpiar todas las órdenes activas en el sistema
     ordenes_activas = Orden.query.filter(
-        or_(
-            Orden.estado_pago != 'Pagada',
-            and_(
-                Orden.estado_pago == 'Pagada',
-                Orden.estado_entrega.notin_(['Retirado', 'Entregado'])
-            )
-        ),
-        Orden.estado.notin_(['Cancelada', 'Reemplazada'])
+        Orden.estado.notin_(['Cancelada', 'Reemplazada', 'Descartada'])
     ).all()
     
     for o in ordenes_activas:
@@ -405,23 +448,52 @@ def admin_cerrar_caja():
             o.estado = 'Entregado'
             
     db.session.commit()
-    print(f"Cierre de caja ejecutado: Total ventas = {total_ventas}, se archivaron {len(ordenes_activas)} ordenes.")
+    
+    # 2. Registrar la marca de tiempo de cierre
+    try:
+        if not os.path.exists(app.instance_path):
+            os.makedirs(app.instance_path)
+        cierre_filepath = os.path.join(app.instance_path, 'cierre_diario.txt')
+        with open(cierre_filepath, 'w') as f:
+            f.write(local_now().isoformat())
+    except Exception as e:
+        print(f"Error al escribir cierre diario: {e}")
+        
     return redirect(url_for('admin_panel'))
+
+@app.route('/admin/eliminar_orden/<int:id>', methods=['POST', 'GET'])
+def admin_eliminar_orden(id):
+    o = Orden.query.get(id)
+    if o:
+        db.session.delete(o)
+        db.session.commit()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/api/eliminar_orden/<int:orden_id>', methods=['DELETE'])
+def api_eliminar_orden_db(orden_id):
+    o = Orden.query.get(orden_id)
+    if o:
+        db.session.delete(o)
+        db.session.commit()
+        return jsonify({"status": "success", "message": f"Orden {orden_id} eliminada permanentemente"})
+    return jsonify({"status": "error", "message": "Orden no encontrada"}), 404
 
 @app.route('/cierre_caja')
 def cierre_caja():
     periodo = request.args.get('periodo', 'dia')
-    fecha_inicio = datetime.now()
+    
+    tz_sv = timezone(timedelta(hours=-6))
+    now_sv = datetime.now(tz_sv)
 
     if periodo == 'dia':
-        fecha_inicio = datetime.combine(date.today(), datetime.min.time())
+        fecha_inicio = datetime.combine(now_sv.date(), datetime.min.time())
     elif periodo == 'semana':
-        fecha_inicio = datetime.now() - timedelta(days=datetime.now().weekday())
-        fecha_inicio = fecha_inicio.replace(hour=0, minute=0, second=0)
+        start_of_week = now_sv - timedelta(days=now_sv.weekday())
+        fecha_inicio = datetime.combine(start_of_week.date(), datetime.min.time())
     elif periodo == 'mes':
-        fecha_inicio = datetime.now().replace(day=1, hour=0, minute=0, second=0)
+        fecha_inicio = datetime.combine(date(now_sv.year, now_sv.month, 1), datetime.min.time())
     elif periodo == 'ano':
-        fecha_inicio = datetime.now().replace(month=1, day=1, hour=0, minute=0, second=0)
+        fecha_inicio = datetime.combine(date(now_sv.year, 1, 1), datetime.min.time())
 
     ordenes_query = Orden.query.filter(
         Orden.estado_pago == 'Pagada', 
@@ -455,6 +527,15 @@ def cierre_caja():
     for o in ordenes_query:
         por_metodo[o.metodo_pago] = por_metodo.get(o.metodo_pago, 0) + o.total
 
+    productos = Producto.query.all()
+    productos_agrupados = {}
+    for p in productos:
+        if p.negocio not in productos_agrupados:
+            productos_agrupados[p.negocio] = {}
+        if p.categoria not in productos_agrupados[p.negocio]:
+            productos_agrupados[p.negocio][p.categoria] = []
+        productos_agrupados[p.negocio][p.categoria].append(p)
+
     return render_template('cierre.html', 
                            ordenes=ordenes_query, 
                            total_general=total_general,
@@ -462,7 +543,8 @@ def cierre_caja():
                            total_mi=total_mi,
                            por_metodo=por_metodo,
                            periodo=periodo,
-                           hoy=date.today())
+                           hoy=now_sv.date(),
+                           productos_agrupados=productos_agrupados)
 
 
 @app.route('/finalizar_pago', methods=['POST'])
@@ -584,6 +666,53 @@ def active_orders_status():
     state = {o.id: o.estado for o in ordenes}
     return jsonify(state)
 
+# --- RUTAS GESTOR DE PEDIDOS (DESPACHO) ---
+@app.route('/pedidos')
+def pedidos_screen():
+    return render_template('pedidos.html')
+
+@app.route('/api/active_orders_detailed')
+def api_active_orders_detailed():
+    # Recuperamos todas las órdenes activas que no se han retirado/entregado
+    ordenes = Orden.query.filter(
+        or_(
+            Orden.estado_pago != 'Pagada',
+            and_(
+                Orden.estado_pago == 'Pagada',
+                Orden.estado_entrega.notin_(['Retirado', 'Entregado'])
+            )
+        ),
+        Orden.estado.notin_(['Cancelada', 'Reemplazada', 'Descartada'])
+    ).order_by(Orden.fecha_creacion).all()
+    
+    output = []
+    for o in ordenes:
+        items = json.loads(o.items_json)
+        output.append({
+            "id": o.id,
+            "ticket_id": o.ticket_id,
+            "negocio": o.negocio,
+            "tipo_servicio": o.tipo_servicio,
+            "total": o.total,
+            "estado": o.estado,
+            "estado_pago": o.estado_pago,
+            "metodo_pago": o.metodo_pago,
+            "referencia": o.referencia,
+            "fecha_creacion": o.fecha_creacion.isoformat(),
+            "hora_creacion": o.fecha_creacion.strftime('%I:%M:%S %p'),
+            "items": items
+        })
+    return jsonify(output)
+
+@app.route('/api/cancelar_orden/<int:id>', methods=['POST'])
+def api_cancelar_orden(id):
+    o = Orden.query.get(id)
+    if o:
+        o.estado = 'Cancelada'
+        db.session.commit()
+        return jsonify({"status": "success"})
+    return jsonify({"status": "error", "message": "Orden no encontrada"}), 404
+
 # --- RUTAS KDS (KITCHEN DISPLAY SYSTEM) ---
 @app.route('/kds/<negocio>')
 def kds_screen(negocio):
@@ -593,7 +722,7 @@ def kds_screen(negocio):
 def api_kds_orders(negocio):
     orders = Orden.query.filter(
         Orden.negocio == negocio,
-        Orden.estado.notin_(['Entregado', 'Cancelada', 'Reemplazada'])
+        Orden.estado.notin_(['Entregado', 'Reemplazada', 'Descartada'])
     ).order_by(Orden.fecha_creacion).all()
     
     output = []
@@ -602,7 +731,7 @@ def api_kds_orders(negocio):
         for item in items:
             prod = Producto.query.filter_by(nombre=item['nombre'], negocio=item['negocio']).first() 
             if prod:
-                item['categoria'] = prod.categoria # Asignamos la categoría
+                item['categoria'] = prod.categoria 
             else:
                 item['categoria'] = 'Desconocida'
 
@@ -612,7 +741,9 @@ def api_kds_orders(negocio):
             "tipo_servicio": o.tipo_servicio,
             "total": o.total,
             "estado": o.estado,
+            "estado_pago": o.estado_pago,
             "fecha_creacion": o.fecha_creacion.isoformat(),
+            "hora_creacion": o.fecha_creacion.strftime('%I:%M:%S %p'),
             "creado_at": o.creado_at.isoformat() if o.creado_at else None,
             "preparacion_at": o.preparacion_at.isoformat() if o.preparacion_at else None,
             "listo_at": o.listo_at.isoformat() if o.listo_at else None,
@@ -628,9 +759,9 @@ def api_kds_update_status():
         nuevo_estado = data['nuevo_estado']
         order.estado = nuevo_estado
         if nuevo_estado == 'Preparando':
-            order.preparacion_at = datetime.utcnow()
+            order.preparacion_at = local_now()
         elif nuevo_estado == 'Lista_Para_Servir':
-            order.listo_at = datetime.utcnow()
+            order.listo_at = local_now()
         db.session.commit()
         return jsonify({"status": "success", "nuevo_estado": order.estado})
     return jsonify({"status": "error", "message": "Orden no encontrada"}), 404

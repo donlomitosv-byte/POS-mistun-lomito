@@ -95,6 +95,18 @@
             margin-top: 2px;
         }
 
+        .item-pill {
+            font-size: 0.78rem;
+            background: #fafaf9;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-right: 6px;
+            margin-top: 4px;
+            border: 1px solid var(--border-color);
+            display: inline-block;
+            font-weight: 600;
+        }
+
         .form-label {
             font-weight: 600;
             font-size: 0.85rem;
@@ -114,21 +126,61 @@
             background: #333842;
             color: white;
         }
+
+        /* Navbar styling */
+        .navbar-custom {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: #0f172a !important;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-link-custom {
+            font-weight: 600;
+            color: #64748b !important;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            text-decoration: none;
+            margin-right: 0.5rem;
+        }
+
+        .nav-link-custom:hover, .nav-link-custom.active {
+            background-color: #f1f5f9;
+            color: #0f172a !important;
+        }
     </style>
 </head>
 <body class="pb-5">
 
-<div class="header-panel">
-    <div class="container d-flex justify-content-between align-items-center">
-        <div>
-            <h2 class="fw-bold mb-0"><i class="fa-solid fa-gears me-2 text-secondary"></i>Configuración de Menú</h2>
-            <p class="text-muted mb-0 small">Administra los productos y modificadores del sistema compartido.</p>
+    <!-- NAV BAR -->
+    <nav class="navbar navbar-expand-lg navbar-custom mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand">
+                <i class="fa-solid fa-gears text-primary me-2"></i>ADMINISTRACIÓN
+            </span>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <div class="navbar-nav">
+                    <a href="/" class="nav-link-custom"><i class="fa-solid fa-cash-register me-1"></i>POS</a>
+                    <a href="/pedidos" class="nav-link-custom"><i class="fa-solid fa-truck-ramp-box me-1"></i>Gestor</a>
+                    <a href="/kds/don_lomito" class="nav-link-custom" target="_blank"><i class="fa-solid fa-pepper-hot me-1 text-danger"></i>KDS Lomito</a>
+                    <a href="/kds/mistun" class="nav-link-custom" target="_blank"><i class="fa-solid fa-mug-hot me-1 text-success"></i>KDS Mistun</a>
+                    <a href="/cierre_caja" class="nav-link-custom"><i class="fa-solid fa-vault me-1"></i>Cierre de Caja</a>
+                    <a href="/admin" class="nav-link-custom active"><i class="fa-solid fa-gears me-1"></i>Admin</a>
+                </div>
+            </div>
         </div>
-        <a href="/" class="btn btn-dark px-4 py-2 rounded-pill fw-bold">
-            <i class="fa-solid fa-cash-register me-1"></i> Ir al Panel de Ventas
-        </a>
-    </div>
-</div>
+    </nav>
 
 <div class="container">
     <div class="row">
@@ -147,8 +199,22 @@
                 <div class="mb-4">
                     <span class="text-muted small d-block">Total de Ventas del Día</span>
                     <span class="fw-bold fs-2 text-success font-monospace">${{ "%.2f"|format(total_ventas) }}</span>
+                    <div class="mt-3 pt-3 border-top border-secondary border-opacity-10 small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted"><i class="fa-solid fa-money-bill-wave me-1 text-success"></i> Efectivo:</span>
+                            <span class="fw-bold font-monospace text-dark">${{ "%.2f"|format(ventas_efectivo) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="text-muted"><i class="fa-solid fa-credit-card me-1 text-primary"></i> Tarjeta:</span>
+                            <span class="fw-bold font-monospace text-dark">${{ "%.2f"|format(ventas_tarjeta) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted"><i class="fa-solid fa-money-bill-transfer me-1 text-warning"></i> Transferencia:</span>
+                            <span class="fw-bold font-monospace text-dark">${{ "%.2f"|format(ventas_transferencia) }}</span>
+                        </div>
+                    </div>
                 </div>
-                <form action="/admin/cerrar_caja" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas Cerrar Caja? Esto marcará todas las órdenes activas como completadas y las limpiará de la pantalla de ventas.');">
+                <form action="/admin/cerrar_caja" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas Cerrar Caja? Esto archivará todas las órdenes activas y reiniciará el reporte de ventas del día actual a $0.00.');">
                     <button type="submit" class="btn btn-success w-100 py-3 fw-bold rounded-3">
                         <i class="fa-solid fa-circle-check me-1"></i> CERRAR CAJA
                     </button>
@@ -201,49 +267,133 @@
         <div class="col-12">
             <div class="admin-card">
                 <h5 class="fw-bold mb-4"><i class="fa-solid fa-list me-2 text-secondary"></i>Catálogo de Productos</h5>
+                
+                {% for negocio, categorias in productos_agrupados.items() %}
+                    <h4 class="mt-4 mb-3 text-uppercase fw-bold {% if negocio == 'don_lomito' %}text-danger{% else %}text-success{% endif %}">
+                        <i class="fa-solid {% if negocio == 'don_lomito' %}fa-pepper-hot{% else %}fa-mug-hot{% endif %} me-2"></i>
+                        {{ negocio.replace('_', ' ') }}
+                    </h4>
+                    
+                    {% for categoria, prods in categorias.items() %}
+                        <div class="card mb-4 border shadow-sm">
+                            <div class="card-header bg-light py-2">
+                                <span class="fw-bold text-secondary text-uppercase" style="font-size: 0.85rem;">
+                                    <i class="fa-solid fa-folder me-2 text-warning"></i>{{ categoria }}
+                                </span>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 35%;">Producto</th>
+                                            <th style="width: 15%;">Precio Base</th>
+                                            <th style="width: 35%;">Adicionales / Modificadores</th>
+                                            <th style="width: 15%;" class="text-center">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for p in prods %}
+                                        <tr>
+                                            <td><span class="fw-bold text-dark">{{ p.nombre }}</span></td>
+                                            <td><span class="fw-bold font-monospace text-primary">${{ "%.2f"|format(p.precio_base) }}</span></td>
+                                            <td>
+                                                {% for o in p.opciones %}
+                                                    <span class="badge-option">
+                                                        {{ o.nombre }} (+${{ "%.2f"|format(o.precio_extra) }})
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted small">Sin extras</span>
+                                                {% endfor %}
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="/eliminar_producto/{{ p.id }}" class="btn btn-sm btn-outline-danger px-3 py-2 rounded-pill fw-bold" onclick="return confirm('¿Estás seguro de que deseas eliminar {{ p.nombre }}?');">
+                                                    <i class="fa-solid fa-trash me-1"></i> Eliminar
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5 text-muted border rounded">
+                        <i class="fa-solid fa-triangle-exclamation fa-2x mb-2 text-warning"></i>
+                        <p class="mb-0">No se han registrado productos en el catálogo.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- LISTADO DE ÓRDENES DE LA JORNADA -->
+        <div class="col-12 mt-4">
+            <div class="admin-card">
+                <h5 class="fw-bold mb-4"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Órdenes de la Jornada Actual</h5>
                 <div class="table-responsive table-custom">
                     <table class="table table-hover align-middle mb-0">
                         <thead>
                             <tr>
-                                <th>Negocio</th>
-                                <th>Categoría</th>
-                                <th>Producto</th>
-                                <th>Precio Base</th>
-                                <th>Adicionales / Modificadores</th>
-                                <th class="text-center">Acciones</th>
+                                <th>Orden #</th>
+                                <th>Hora</th>
+                                <th>Mesa / Cliente</th>
+                                <th>Marca</th>
+                                <th>Total</th>
+                                <th>Pago & Referencia</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for p in productos %}
-                            <tr>
+                            {% for o in ordenes_del_dia %}
+                            <tr id="row-orden-{{ o.id }}">
+                                <td><span class="badge bg-secondary font-monospace">#{{ o.id }}</span></td>
+                                <td><span class="text-muted small">{{ o.fecha_creacion.strftime('%I:%M %p') }}</span></td>
                                 <td>
-                                    <span class="badge {{ 'badge-dl' if p.negocio == 'don_lomito' else 'badge-mi' }} text-uppercase px-3 py-2">
-                                        {{ p.negocio.replace('_', ' ') }}
+                                    <span class="fw-bold"><i class="fa-solid fa-ticket text-warning me-1"></i>{{ o.ticket_id }}</span>
+                                    <div class="mt-1">
+                                        {% for item in o.items_lista %}
+                                            <span class="item-pill">
+                                                <b>{{ item.cantidad }}x</b> {{ item.nombre }}
+                                                {% if item.mods and item.mods|length > 0 %}
+                                                    <small class="text-muted">
+                                                        ({{ item.mods|map(attribute='nombre')|join(', ') if item.mods[0] is mapping else item.mods|join(', ') }})
+                                                    </small>
+                                                {% endif %}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge {{ 'badge-dl' if o.negocio == 'don_lomito' else 'badge-mi' }} text-uppercase px-2 py-1">
+                                        {{ o.negocio.replace('don_', '') }}
                                     </span>
                                 </td>
-                                <td><span class="fw-bold text-secondary text-uppercase" style="font-size: 0.85rem;">{{ p.categoria }}</span></td>
-                                <td><span class="fw-bold text-dark">{{ p.nombre }}</span></td>
-                                <td><span class="fw-bold font-monospace text-primary">${{ p.precio_base }}</span></td>
+                                <td><span class="fw-bold font-monospace text-success">${{ "%.2f"|format(o.total) }}</span></td>
                                 <td>
-                                    {% for o in p.opciones %}
-                                        <span class="badge-option">
-                                            {{ o.nombre }} (+${{ o.precio_extra }})
-                                        </span>
-                                    {% else %}
-                                        <span class="text-muted small">Sin extras</span>
-                                    {% endfor %}
+                                    <span class="small fw-semibold text-secondary">
+                                        {{ o.metodo_pago }}
+                                        {% if o.referencia %}
+                                            <br><small class="text-muted font-monospace">Ref: {{ o.referencia }}</small>
+                                        {% endif %}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if o.estado == 'Cancelada' %}bg-danger{% elif o.estado == 'Entregado' %}bg-success{% else %}bg-warning text-dark{% endif %} text-uppercase">
+                                        {{ o.estado.replace('_Cocina', '').replace('_', ' ') }}
+                                    </span>
                                 </td>
                                 <td class="text-center">
-                                    <a href="/eliminar_producto/{{ p.id }}" class="btn btn-sm btn-outline-danger px-3 py-2 rounded-pill fw-bold" onclick="return confirm('¿Estás seguro de que deseas eliminar {{ p.nombre }}?');">
+                                    <button type="button" class="btn btn-sm btn-danger px-3 py-1.5 rounded-pill fw-bold" onclick="eliminarOrdenAjax({{ o.id }}, this)">
                                         <i class="fa-solid fa-trash me-1"></i> Eliminar
-                                    </a>
+                                    </button>
                                 </td>
                             </tr>
                             {% else %}
                             <tr>
-                                <td colspan="6" class="text-center py-5 text-muted">
-                                    <i class="fa-solid fa-triangle-exclamation fa-2x mb-2 text-warning"></i>
-                                    <p class="mb-0">No se han registrado productos en el catálogo.</p>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-receipt fa-2x mb-2 opacity-50"></i>
+                                    <p class="mb-0">No se han registrado órdenes en la jornada actual.</p>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -254,6 +404,58 @@
         </div>
     </div>
 </div>
+
+<script>
+async function eliminarOrdenAjax(ordenId, btnElement) {
+    if (!confirm(`¿Estás seguro de que deseas ELIMINAR DEFINITIVAMENTE la orden #${ordenId}?\nEsta acción es irreversible y afectará el balance de caja.`)) {
+        return;
+    }
+    
+    // Deshabilitar botón para prevenir doble submit
+    btnElement.disabled = true;
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = `<i class="fa-solid fa-spinner fa-spin me-1"></i> Borrando...`;
+    
+    try {
+        const response = await fetch(`/api/eliminar_orden/${ordenId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            // Remover la fila de la tabla
+            const row = document.getElementById(`row-orden-${ordenId}`);
+            if (row) {
+                row.style.transition = 'all 0.3s ease';
+                row.style.opacity = '0';
+                setTimeout(() => {
+                    row.remove();
+                    // Si no quedan más filas, mostrar estado vacío
+                    const tbody = document.querySelector('.table-custom tbody');
+                    if (tbody && tbody.querySelectorAll('tr[id^="row-orden-"]').length === 0) {
+                        tbody.innerHTML = `
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-receipt fa-2x mb-2 opacity-50"></i>
+                                    <p class="mb-0">No se han registrado órdenes en la jornada actual.</p>
+                                </td>
+                            </tr>`;
+                    }
+                }, 300);
+            }
+        } else {
+            alert("Error al intentar eliminar la orden de la base de datos.");
+            btnElement.disabled = false;
+            btnElement.innerHTML = originalText;
+        }
+    } catch (error) {
+        console.error("Error al eliminar orden:", error);
+        alert("Error de conexión. No se pudo eliminar la orden.");
+        btnElement.disabled = false;
+        btnElement.innerHTML = originalText;
+    }
+}
+</script>
 
 </body>
 </html>
